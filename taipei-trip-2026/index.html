@@ -172,6 +172,76 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ── Transit Row ─────────────────────────────────── */
+    .transit-row {
+      list-style: none; display: flex; align-items: flex-start;
+      padding: 0 14px 0 50px; gap: 8px; cursor: pointer;
+    }
+    .transit-inner { flex: 1; padding: 4px 0; }
+    .transit-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .t-chip {
+      font-size: .7rem; padding: 3px 9px; border-radius: 20px;
+      background: var(--raised); border: 1px solid var(--border); white-space: nowrap;
+    }
+    .transit-detail { display: none; margin-top: 6px; }
+    .transit-row.open .transit-detail { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .gmaps-link {
+      font-size: .75rem; color: var(--accent); text-decoration: none;
+      padding: 4px 10px; border: 1px solid var(--accent); border-radius: 20px;
+    }
+    .t-dist { font-size: .68rem; color: var(--muted); margin-right: 2px; }
+
+    /* ── Add Place Button & Modal ─────────────────────── */
+    .add-place-btn {
+      width: 100%; background: none; border: 2px dashed var(--border);
+      color: var(--muted); padding: 12px; border-radius: var(--r);
+      font-family: var(--font); font-size: .9rem; cursor: pointer; margin-top: 12px;
+      transition: border-color .15s, color .15s;
+    }
+    .add-place-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 500; display: none; align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      background: var(--card); width: 100%; max-width: 700px;
+      border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+      max-height: 82vh; overflow-y: auto;
+    }
+    .modal-hdr {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+    }
+    .modal-hdr h3 { font-size: 1rem; color: var(--accent); }
+    .modal-close {
+      background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted);
+    }
+    .nom-result {
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--border); margin-bottom: 6px; transition: background .15s;
+    }
+    .nom-result:hover, .nom-result.selected { background: var(--raised); border-color: var(--accent); }
+    .nom-name { font-weight: bold; font-size: .88rem; }
+    .nom-addr { font-size: .73rem; color: var(--muted); margin-top: 2px; }
+    .nom-empty { color: var(--muted); font-size: .85rem; padding: 10px 0; }
+    .add-form { margin-top: 14px; display: none; }
+    .add-form.vis { display: block; }
+    .add-form-sel { font-size: .82rem; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
+    .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .form-row input {
+      flex: 1; background: var(--raised); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 10px; border-radius: 8px;
+      font-family: var(--font); font-size: .88rem; outline: none;
+    }
+    .form-row input:focus { border-color: var(--accent); }
+    .form-row input.icon-inp { flex: 0 0 60px; text-align: center; font-size: 1.2rem; }
+    .add-confirm {
+      width: 100%; background: var(--accent); border: none; color: #1a0e00;
+      padding: 12px; border-radius: 10px; font-size: 1rem;
+      font-family: var(--font); cursor: pointer; font-weight: bold; margin-top: 4px;
+    }
+    .search-spin { color: var(--muted); font-size: .82rem; padding: 8px 0; }
+
     /* ── Print Media ─────────────────────────────────── */
     @media print {
       .hdr, .tabs, #map, #singleView, #searchView, #toast { display: none !important; }
@@ -236,6 +306,32 @@
 </main>
 
 <div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ═══ ADD PLACE MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <h3 id="modalTitle">＋ เพิ่มสถานที่</h3>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="search-wrap">
+      <input type="search" id="nomSearch" placeholder="🔍  ค้นหาสถานที่ใน Taipei..." autocomplete="off">
+      <button class="search-clear" id="nomClear">✕</button>
+    </div>
+    <div id="nomResults" style="margin-top:10px"></div>
+    <div class="add-form" id="addForm">
+      <div class="add-form-sel" id="addFormName"></div>
+      <div class="form-row">
+        <input type="time" id="addTime" value="10:00">
+        <input type="text" id="addIcon" class="icon-inp" value="📍" placeholder="icon" maxlength="2">
+      </div>
+      <div class="form-row">
+        <input type="text" id="addNote" placeholder="หมายเหตุ (optional)">
+      </div>
+      <button class="add-confirm" id="addConfirm">เพิ่มลงแผน</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ SCRIPTS ════════════════════════════════════════ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -343,17 +439,36 @@ function renderDay(i) {
 
   const list = document.getElementById('placeList');
   list.innerHTML = '';
-  day.places.forEach(p => list.appendChild(makeCard(p, day.color, true)));
+
+  day.places.forEach((p, pi) => {
+    const card = makeCard(p, day.color, true);
+    card.dataset.placeIdx = pi;
+    list.appendChild(card);
+    if (pi < day.places.length - 1) {
+      const tr = makeTransitRow(p, day.places[pi + 1]);
+      if (tr) list.appendChild(tr);
+    }
+  });
+
+  // Add place button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-place-btn';
+  addBtn.textContent = '＋ เพิ่มสถานที่';
+  addBtn.addEventListener('click', () => openAddModal(i));
+  list.parentElement.appendChild(addBtn);
 
   if (sortable) sortable.destroy();
   sortable = Sortable.create(list, {
     handle: '.drag-h', animation: 180,
+    filter: '.transit-row', draggable: '.pcard',
     ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
-    onEnd({ oldIndex, newIndex }) {
-      if (oldIndex === newIndex) return;
-      const [mv] = day.places.splice(oldIndex, 1);
-      day.places.splice(newIndex, 0, mv);
+    onEnd() {
+      const snapshot = [...day.places];
+      const cards = [...list.querySelectorAll('.pcard')];
+      day.places = cards.map(el => snapshot[parseInt(el.dataset.placeIdx)]);
       toast('ย้ายสถานที่เรียบร้อย ✓');
+      renderDay(i);
+      updateMap(i);
     }
   });
 }
@@ -538,11 +653,145 @@ function bindEvents() {
     if (!btn) return;
     focusMarker(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lng));
   });
+
+  // Modal close
+  document.getElementById('modalClose').addEventListener('click', closeAddModal);
+  document.getElementById('addModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('addModal')) closeAddModal();
+  });
+
+  // Nominatim search
+  const nomInp = document.getElementById('nomSearch');
+  const nomClr = document.getElementById('nomClear');
+  nomInp.addEventListener('input', e => {
+    const q = e.target.value;
+    nomClr.style.display = q ? 'block' : 'none';
+    clearTimeout(nomTimer);
+    nomTimer = setTimeout(() => nominatimSearch(q), 400);
+  });
+  nomClr.addEventListener('click', () => {
+    nomInp.value = '';
+    nomClr.style.display = 'none';
+    document.getElementById('nomResults').innerHTML = '';
+    document.getElementById('addForm').classList.remove('vis');
+    nomInp.focus();
+  });
+
+  // Add confirm
+  document.getElementById('addConfirm').addEventListener('click', confirmAddPlace);
+  document.getElementById('addIcon').addEventListener('focus', e => e.target.select());
 }
 
 /* ── Util ──────────────────────────────────────────── */
 function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Transit Helpers ───────────────────────────────── */
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371, r = Math.PI / 180;
+  const dL = (lat2 - lat1) * r, dG = (lng2 - lng1) * r;
+  const a = Math.sin(dL/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dG/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function travelEst(km) {
+  const walk = Math.max(5,  Math.round(km * 1.3 / 5 * 60));
+  const mrt  = Math.max(10, Math.round(km * 2.5 + 8));
+  const taxi = Math.max(8,  Math.round(km * 2.2 + 5));
+  const ntd  = Math.round(85 + Math.max(0, km - 1.25) * 25);
+  return { walk, mrt, taxi, ntd, km: km.toFixed(1) };
+}
+
+function makeTransitRow(p1, p2) {
+  if (!p1.lat || !p2.lat) return null;
+  const est = travelEst(haversine(p1.lat, p1.lng, p2.lat, p2.lng));
+  const gmUrl = `https://www.google.com/maps/dir/?api=1&origin=${p1.lat},${p1.lng}&destination=${p2.lat},${p2.lng}&travelmode=transit`;
+  const li = document.createElement('li');
+  li.className = 'transit-row';
+  li.innerHTML = `
+    <div class="transit-inner">
+      <div class="transit-chips">
+        <span class="t-dist">${est.km} km</span>
+        <span class="t-chip">🚶 ${est.walk} นาที</span>
+        <span class="t-chip">🚇 ~${est.mrt} นาที</span>
+        <span class="t-chip">🚕 ~${est.taxi} นาที ≈NT$${est.ntd}</span>
+      </div>
+      <div class="transit-detail">
+        <a class="gmaps-link" href="${gmUrl}" target="_blank" rel="noopener">🗺 เปิด Google Maps</a>
+      </div>
+    </div>`;
+  li.addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    li.classList.toggle('open');
+  });
+  return li;
+}
+
+/* ── Add Place (Nominatim) ─────────────────────────── */
+let addCtx = { dayIdx: 0, selected: null };
+let nomTimer = null;
+
+function openAddModal(dayIdx) {
+  addCtx = { dayIdx, selected: null };
+  document.getElementById('modalTitle').textContent = `＋ เพิ่มสถานที่ — Day ${data.days[dayIdx].day}`;
+  document.getElementById('nomSearch').value = '';
+  document.getElementById('nomResults').innerHTML = '';
+  document.getElementById('addForm').classList.remove('vis');
+  document.getElementById('nomClear').style.display = 'none';
+  document.getElementById('addModal').classList.add('open');
+  setTimeout(() => document.getElementById('nomSearch').focus(), 100);
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+async function nominatimSearch(q) {
+  q = q.trim();
+  if (q.length < 2) { document.getElementById('nomResults').innerHTML = ''; return; }
+  const el = document.getElementById('nomResults');
+  el.innerHTML = '<div class="search-spin">กำลังค้นหา…</div>';
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1&accept-language=zh-TW,en&viewbox=120.9,24.9,121.7,25.3&bounded=0`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const items = await res.json();
+    if (!items.length) { el.innerHTML = '<div class="nom-empty">ไม่พบสถานที่ ลองคำอื่น</div>'; return; }
+    el.innerHTML = '';
+    items.forEach(item => {
+      const name = item.name || item.display_name.split(',')[0];
+      const addr = item.display_name.split(',').slice(1, 3).join(',').trim();
+      const div = document.createElement('div');
+      div.className = 'nom-result';
+      div.innerHTML = `<div class="nom-name">${esc(name)}</div><div class="nom-addr">${esc(addr)}</div>`;
+      div.addEventListener('click', () => selectNomResult(item, name, div));
+      el.appendChild(div);
+    });
+  } catch(e) {
+    el.innerHTML = '<div class="nom-empty">เกิดข้อผิดพลาด กรุณาลองใหม่</div>';
+  }
+}
+
+function selectNomResult(item, name, el) {
+  document.querySelectorAll('.nom-result').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  addCtx.selected = { name, lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+  document.getElementById('addFormName').textContent = '📍 ' + name;
+  document.getElementById('addForm').classList.add('vis');
+  document.getElementById('addForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function confirmAddPlace() {
+  if (!addCtx.selected) return;
+  const time = document.getElementById('addTime').value || '10:00';
+  const icon = document.getElementById('addIcon').value.trim() || '📍';
+  const note = document.getElementById('addNote').value.trim();
+  const { name, lat, lng } = addCtx.selected;
+  const newPlace = { id: 'u' + Date.now(), time, icon, name, lat, lng, note };
+  data.days[addCtx.dayIdx].places.push(newPlace);
+  closeAddModal();
+  selectDay(addCtx.dayIdx);
+  toast(`เพิ่ม "${name}" แล้ว ✓`);
 }
 
 init().catch(console.error);
