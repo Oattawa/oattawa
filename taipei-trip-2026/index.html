@@ -136,11 +136,13 @@
     .p-time { font-size: .72rem; color: var(--muted); font-family: 'Courier New', monospace; letter-spacing: .05em; margin-bottom: 3px; }
     .p-name { font-size: .95rem; font-weight: bold; line-height: 1.3; }
     .p-note { font-size: .78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-    .loc-btn {
+    .card-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .loc-btn, .del-btn {
       background: none; border: none; cursor: pointer; font-size: 1rem;
-      padding: 2px; opacity: .6; transition: opacity .15s; flex-shrink: 0;
+      padding: 2px; opacity: .5; transition: opacity .15s;
     }
     .loc-btn:hover { opacity: 1; }
+    .del-btn:hover { opacity: 1; }
 
     /* ── Search View ─────────────────────────────────── */
     #searchView { display: none; }
@@ -487,7 +489,10 @@ function makeCard(p, color, draggable) {
        <div class="p-name">${esc(p.name)}</div>
        ${p.note ? `<div class="p-note">${esc(p.note)}</div>` : ''}
      </div>
-     ${hasLL ? `<button class="loc-btn" data-lat="${p.lat}" data-lng="${p.lng}" title="Show on map">📍</button>` : ''}`;
+     <div class="card-actions">
+       ${hasLL ? `<button class="loc-btn" data-lat="${p.lat}" data-lng="${p.lng}" title="Show on map">📍</button>` : ''}
+       ${draggable ? `<button class="del-btn" title="ลบสถานที่นี้">🗑</button>` : ''}
+     </div>`;
   return li;
 }
 
@@ -649,9 +654,21 @@ function bindEvents() {
 
   // Delegated locate button
   document.addEventListener('click', e => {
-    const btn = e.target.closest('.loc-btn');
-    if (!btn) return;
-    focusMarker(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lng));
+    const loc = e.target.closest('.loc-btn');
+    if (loc) { focusMarker(parseFloat(loc.dataset.lat), parseFloat(loc.dataset.lng)); return; }
+
+    // Delegated delete button
+    const del = e.target.closest('.del-btn');
+    if (!del) return;
+    const card = del.closest('.pcard');
+    const idx  = parseInt(card.dataset.placeIdx);
+    const day  = data.days[curDay];
+    const name = day.places[idx]?.name || 'สถานที่นี้';
+    if (!confirm(`ลบ "${name}" ออกจากแผน?`)) return;
+    day.places.splice(idx, 1);
+    renderDay(curDay);
+    updateMap(curDay);
+    toast(`ลบ "${name}" แล้ว`);
   });
 
   // Modal close
