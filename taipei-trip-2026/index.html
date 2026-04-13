@@ -579,11 +579,27 @@ async function init() {
   // snapshot original data for reset
   originalData = JSON.parse(JSON.stringify(data));
 
+  // restore saved user state (transit modes, times, durations, meal picks, place order)
+  try {
+    const saved = localStorage.getItem('taipei-trip-state');
+    if (saved) {
+      const savedData = JSON.parse(saved);
+      if (savedData.days && savedData.days.length === data.days.length) {
+        data = savedData;
+      }
+    }
+  } catch(e) {}
+
   buildTabs();
   initMap();
   selectDay(0);
   buildPrintView();
   bindEvents();
+}
+
+/* ── Persist state ─────────────────────────────────── */
+function saveState() {
+  try { localStorage.setItem('taipei-trip-state', JSON.stringify(data)); } catch(e) {}
 }
 
 /* ── Tabs ──────────────────────────────────────────── */
@@ -619,6 +635,7 @@ function resetDay(i) {
   if (!confirm(`รีเซ็ต Day ${data.days[i].day} กลับเป็นแผนเดิม?`)) return;
   data.days[i].places = JSON.parse(JSON.stringify(originalData.days[i].places));
   delete data.days[i].transitModes;
+  saveState();
   selectDay(i);
   toast(`Day ${data.days[i].day} รีเซ็ตแล้ว ✓`);
 }
@@ -667,6 +684,7 @@ function renderDay(i) {
       toast('ย้ายสถานที่เรียบร้อย ✓');
       renderDay(i);
       updateMap(i);
+      saveState();
     }
   });
 
@@ -718,6 +736,7 @@ function renderMeals(dayIdx) {
       card.addEventListener('click', e => {
         if (e.target.classList.contains('meal-map-btn')) return;
         meal._selected = (meal._selected === oi) ? undefined : oi;
+        saveState();
         renderMeals(dayIdx);
       });
 
@@ -797,6 +816,7 @@ function makeCard(p, color, draggable, dayIdx, placeIdx) {
         if (depEl) depEl.textContent = getDep(p);
         // cascade
         cascadeTimes(dayIdx, placeIdx);
+        saveState();
       }
       inp.addEventListener('blur', saveDur);
       inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.blur(); });
@@ -1049,6 +1069,7 @@ function bindEvents() {
     const name = day.places[idx]?.name || 'สถานที่นี้';
     if (!confirm(`ลบ "${name}" ออกจากแผน?`)) return;
     day.places.splice(idx, 1);
+    saveState();
     renderDay(curDay);
     updateMap(curDay);
     toast(`ลบ "${name}" แล้ว`);
@@ -1191,6 +1212,7 @@ function makeTransitRow(p1, p2, dayIdx, transitIdx) {
         li.classList.add('open');
         render();
         cascadeTimes(dayIdx, transitIdx);
+        saveState();
         toast(`อัปเดตเวลาจาก ${selMode.icon} แล้ว`);
       });
     });
@@ -1269,6 +1291,7 @@ function confirmAddPlace() {
   const { name, lat, lng } = addCtx.selected;
   const newPlace = { id: 'u' + Date.now(), time, icon, name, lat, lng, note };
   data.days[addCtx.dayIdx].places.push(newPlace);
+  saveState();
   closeAddModal();
   selectDay(addCtx.dayIdx);
   toast(`เพิ่ม "${name}" แล้ว ✓`);
