@@ -735,9 +735,12 @@ function renderMeals(dayIdx) {
 
       card.addEventListener('click', e => {
         if (e.target.classList.contains('meal-map-btn')) return;
-        meal._selected = (meal._selected === oi) ? undefined : oi;
+        const newSel = (meal._selected === oi) ? undefined : oi;
+        meal._selected = newSel;
+        insertMealPlace(dayIdx, meal, newSel !== undefined ? meal.options[newSel] : undefined);
         saveState();
-        renderMeals(dayIdx);
+        renderDay(dayIdx);
+        updateMap(dayIdx);
       });
 
       if (opt.lat) {
@@ -779,6 +782,7 @@ function makeCard(p, color, draggable, dayIdx, placeIdx) {
        <div class="p-time">${p.time}</div>
        <div class="p-name">${esc(p.name)}</div>
        ${p.note ? `<div class="p-note">${esc(p.note)}</div>` : ''}
+       ${p._mealId ? `<span class="meal-tag" style="font-size:.65rem;margin-top:3px;display:inline-block">🍽 จากแผนอาหาร</span>` : ''}
        ${draggable ? `<div class="p-meta">
          <span class="dur-badge" title="เวลาที่ใช้ที่สถานที่นี้ (คลิกเพื่อแก้)">⏱ ${fmtDur(dur)}</span>
          <span class="dep-sep">→ ออก</span>
@@ -1064,10 +1068,16 @@ function bindEvents() {
     const del = e.target.closest('.del-btn');
     if (!del) return;
     const card = del.closest('.pcard');
-    const idx  = parseInt(card.dataset.placeIdx);
-    const day  = data.days[curDay];
-    const name = day.places[idx]?.name || 'สถานที่นี้';
+    const idx   = parseInt(card.dataset.placeIdx);
+    const day   = data.days[curDay];
+    const place = day.places[idx];
+    const name  = place?.name || 'สถานที่นี้';
     if (!confirm(`ลบ "${name}" ออกจากแผน?`)) return;
+    // If from meal selection → deselect that meal
+    if (place?._mealId) {
+      (day.meals || []).forEach(m => { if (m.id === place._mealId) m._selected = undefined; });
+    }
+    shiftTransitModes(day, idx, -1);
     day.places.splice(idx, 1);
     saveState();
     renderDay(curDay);
@@ -1163,6 +1173,59 @@ function cascadeTimes(dayIdx, startIdx) {
       if (depEl) depEl.textContent = fmtTime(dep);
     }
   }
+}
+
+/* ── Meal → Itinerary ──────────────────────────────── */
+function shiftTransitModes(day, atIdx, delta) {
+  if (!day.transitModes) return;
+  const newModes = {};
+  Object.entries(day.transitModes).forEach(([key, val]) => {
+    const idx = parseInt(key);
+    if (delta > 0) {
+      newModes[idx >= atIdx ? idx + 1 : idx] = val;
+    } else {
+      if (idx !== atIdx) newModes[idx > atIdx ? idx - 1 : idx] = val;
+    }
+  });
+  day.transitModes = newModes;
+}
+
+function insertMealPlace(dayIdx, meal, opt) {
+  const day = data.days[dayIdx];
+
+  // Remove existing place for this meal slot (if any)
+  const existIdx = day.places.findIndex(p => p._mealId === meal.id);
+  if (existIdx !== -1) {
+    shiftTransitModes(day, existIdx, -1);
+    day.places.splice(existIdx, 1);
+  }
+
+  if (opt === undefined) return;  // just removing
+
+  const mealTime = meal.time.replace(/[~\s]/g, '');
+  const mealMins = parseMins(mealTime);
+  const mealIcon = meal.slot.includes('🌅') ? '🍳'
+                 : meal.slot.includes('🌞') ? '🍜' : '🍽';
+
+  const newPlace = {
+    id: 'meal_' + meal.id,
+    time: mealTime,
+    icon: mealIcon,
+    name: opt.nameEn || opt.name,
+    lat:  opt.lat  || null,
+    lng:  opt.lng  || null,
+    note: (opt.nameEn && opt.name !== opt.nameEn ? opt.name + ' · ' : '')
+          + opt.cuisine + ' · ' + opt.price,
+    _mealId: meal.id
+  };
+
+  // Insert at correct time position
+  let insertIdx = day.places.length;
+  for (let i = 0; i < day.places.length; i++) {
+    if (parseMins(day.places[i].time) > mealMins) { insertIdx = i; break; }
+  }
+  shiftTransitModes(day, insertIdx, +1);
+  day.places.splice(insertIdx, 0, newPlace);
 }
 
 function makeTransitRow(p1, p2, dayIdx, transitIdx) {
