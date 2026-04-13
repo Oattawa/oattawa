@@ -13,6 +13,60 @@
         { "id": "d1p3", "time": "19:30", "icon": "🏨", "name": "Just Sleep Ximending", "lat": 25.0450, "lng": 121.5096, "note": "Hotel check-in" },
         { "id": "d1p4", "time": "20:00", "icon": "🌙", "name": "Ximending",            "lat": 25.0428, "lng": 121.5077, "note": "Night walk & street food" },
         { "id": "d1p5", "time": "22:30", "icon": "🏨", "name": "Just Sleep Ximending", "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
+      ],
+      "meals": [
+        {
+          "id": "d1meal1",
+          "slot": "🌙 Dinner",
+          "time": "~20:00",
+          "area": "Ximending",
+          "options": [
+            {
+              "rank": 1,
+              "name": "阿宗麵線",
+              "nameEn": "Ay-Chung Flour-Rice Noodle",
+              "cuisine": "Taiwanese",
+              "price": "NT$60-80",
+              "rating": "4.5★",
+              "lat": 25.0429,
+              "lng": 121.5062,
+              "note": "เส้นกึ่งสำเร็จ+เครื่องในหมู สัญลักษณ์ Ximending มากว่า 45 ปี"
+            },
+            {
+              "rank": 2,
+              "name": "Q House Cumin Lamb",
+              "nameEn": "Q House Cumin Lamb",
+              "cuisine": "Taiwanese Fusion",
+              "price": "NT$150-280",
+              "rating": "4.3★",
+              "lat": 25.0421,
+              "lng": 121.5050,
+              "note": "เนื้อแกะผัดยี่หร่า เมนูดังของ Ximending"
+            },
+            {
+              "rank": 3,
+              "name": "老天祿鹵味",
+              "nameEn": "Old Tian-Lu Marinated",
+              "cuisine": "Taiwanese Snacks",
+              "price": "NT$80-150",
+              "rating": "4.2★",
+              "lat": 25.0434,
+              "lng": 121.5060,
+              "note": "ของดองในน้ำปรุงรสสูตรโบราณ เคี้ยวเพลิน"
+            },
+            {
+              "rank": 4,
+              "name": "Ximending Street Food",
+              "nameEn": "Ximending Street Food",
+              "cuisine": "Street Food",
+              "price": "NT$50-150",
+              "rating": "4.0★",
+              "lat": 25.0428,
+              "lng": 121.5077,
+              "note": "แผงข้างทางหลากหลาย · ไก่ทอด หมึกย่าง ชานมไข่มุก"
+            }
+          ]
+        }
       ]
     },
     {
@@ -28,6 +82,153 @@
         { "id": "d2p4", "time": "16:30", "icon": "🌅", "name": "Elephant Mountain",            "lat": 25.0272, "lng": 121.5765, "note": "ขึ้นเขาดูวิว Taipei 101 ยามเย็น" },
         { "id": "d2p5", "time": "19:30", "icon": "🏮", "name": "Raohe Night Market",           "lat": 25.0509, "lng": 121.5775, "note": "ตลาดคืน · อาหารอร่อย" },
         { "id": "d2p6", "time": "22:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
+      ],
+      "meals": [
+        {
+          "id": "d2meal1",
+          "slot": "🌅 Breakfast",
+          "time": "~08:15",
+          "area": "Ximending",
+          "options": [
+            {
+              "rank": 1,
+              "name": "阜杭豆漿",
+              "nameEn": "Fuhang Soy Milk",
+              "cuisine": "Taiwanese Breakfast",
+              "price": "NT$40-80",
+              "rating": "4.6★",
+              "lat": 25.0473,
+              "lng": 121.5282,
+              "note": "อร่อยที่สุดในไต้หวัน · ต่อคิวนานแต่คุ้ม เปิด 05:30"
+            },
+            {
+              "rank": 2,
+              "name": "永和豆漿大王",
+              "nameEn": "Yonghe Soy Milk King",
+              "cuisine": "Taiwanese Breakfast",
+              "price": "NT$30-70",
+              "rating": "4.3★",
+              "lat": 25.0451,
+              "lng": 121.5020,
+              "note": "คลาสสิคที่สุด · เปิด 24 ชม. ใกล้โรงแรม"
+            },
+            {
+              "rank": 3,
+              "name": "世界豆漿大王",
+              "nameEn": "World Soy Milk King",
+              "cuisine": "Taiwanese Breakfast",
+              "price": "NT$35-75",
+              "rating": "4.2★",
+              "lat": 25.0445,
+              "lng": 121.5065,
+              "note": "อาหารเช้าไต้หวัน · โจ๊กข้าว ไข่เจียว ขนมจีบ"
+            }
+          ]
+        },
+        {
+          "id": "d2meal2",
+          "slot": "🌞 Lunch",
+          "time": "~12:30",
+          "area": "Yongkang St.",
+          "options": [
+            {
+              "rank": 1,
+              "name": "鼎泰豐 永康店",
+              "nameEn": "Din Tai Fung (Original)",
+              "cuisine": "Dim Sum / Xiaolongbao",
+              "price": "NT$400-700/p",
+              "rating": "4.7★",
+              "lat": 25.0293,
+              "lng": 121.5287,
+              "note": "ซาลาเปาน้ำซุประดับโลก · สาขาต้นตำรับ ต้องจอง"
+            },
+            {
+              "rank": 2,
+              "name": "杭州小籠湯包",
+              "nameEn": "Hangzhou Xiaolongbao",
+              "cuisine": "Xiaolongbao",
+              "price": "NT$150-250",
+              "rating": "4.5★",
+              "lat": 25.0302,
+              "lng": 121.5304,
+              "note": "ทางเลือกถูกกว่า Din Tai Fung · อร่อยมากไม่แพ้กัน"
+            },
+            {
+              "rank": 3,
+              "name": "四川吳抄手",
+              "nameEn": "Sichuan Wonton",
+              "cuisine": "Sichuan / Wonton",
+              "price": "NT$120-180",
+              "rating": "4.3★",
+              "lat": 25.0285,
+              "lng": 121.5291,
+              "note": "เกี๊ยวน้ำซูชวน เผ็ดหอมเครื่องเทศ"
+            },
+            {
+              "rank": 4,
+              "name": "永康街小吃",
+              "nameEn": "Yongkang St Snacks",
+              "cuisine": "Street Food",
+              "price": "NT$60-120",
+              "rating": "4.0★",
+              "lat": 25.0293,
+              "lng": 121.5285,
+              "note": "เดินกินไปตลอดถนน · มังคุดน้ำแข็ง ซาลาเปา"
+            }
+          ]
+        },
+        {
+          "id": "d2meal3",
+          "slot": "🌙 Dinner",
+          "time": "~19:30",
+          "area": "Raohe Night Market",
+          "options": [
+            {
+              "rank": 1,
+              "name": "福州世祖胡椒餅",
+              "nameEn": "Fuzhou Pepper Bun",
+              "cuisine": "Taiwanese Baked Bun",
+              "price": "NT$55",
+              "rating": "4.7★",
+              "lat": 25.0511,
+              "lng": 121.5773,
+              "note": "พายพริกไทยอบในเตาถ่าน · ต้นตำรับ Raohe ต้องกิน!"
+            },
+            {
+              "rank": 2,
+              "name": "陳董藥膳排骨酥湯",
+              "nameEn": "Chen Dong Herb Pork Rib Soup",
+              "cuisine": "Taiwanese Soup",
+              "price": "NT$80-120",
+              "rating": "4.5★",
+              "lat": 25.0509,
+              "lng": 121.5775,
+              "note": "ซุปกระดูกหมูสมุนไพรจีน · อุ่นท้อง หอมยา"
+            },
+            {
+              "rank": 3,
+              "name": "Raohe Grilled Seafood",
+              "nameEn": "Raohe Grilled Seafood",
+              "cuisine": "Seafood / BBQ",
+              "price": "NT$100-250",
+              "rating": "4.3★",
+              "lat": 25.0510,
+              "lng": 121.5778,
+              "note": "หมึกย่าง กุ้งปิ้ง หอยนางรมสด · สดใหม่จากตลาด"
+            },
+            {
+              "rank": 4,
+              "name": "原汁牛肉湯",
+              "nameEn": "Original Beef Broth Soup",
+              "cuisine": "Taiwanese Beef",
+              "price": "NT$80-130",
+              "rating": "4.2★",
+              "lat": 25.0508,
+              "lng": 121.5772,
+              "note": "ซุปเนื้อต้น น้ำซุปใสหวานธรรมชาติ"
+            }
+          ]
+        }
       ]
     },
     {
@@ -45,6 +246,112 @@
         { "id": "d3p6", "time": "17:00", "icon": "🏙️", "name": "Taipei 101 Mall",             "lat": 25.0341, "lng": 121.5640, "note": "ช้อปปิ้ง + วิวตึก 101" },
         { "id": "d3p7", "time": "21:00", "icon": "🎡", "name": "Shilin Night Market",          "lat": 25.0885, "lng": 121.5244, "note": "ตลาดคืนใหญ่ที่สุดในไทเป" },
         { "id": "d3p8", "time": "23:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
+      ],
+      "meals": [
+        {
+          "id": "d3meal1",
+          "slot": "🌞 Lunch",
+          "time": "~13:00",
+          "area": "Xingtian / Zhongshan",
+          "options": [
+            {
+              "rank": 1,
+              "name": "梁記滷肉飯",
+              "nameEn": "Liang's Braised Pork Rice",
+              "cuisine": "Taiwanese Rice",
+              "price": "NT$80-150",
+              "rating": "4.5★",
+              "lat": 25.0625,
+              "lng": 121.5320,
+              "note": "ข้าวหมูพะโล้ยอดนิยม · ใกล้วัดซิงเทียน"
+            },
+            {
+              "rank": 2,
+              "name": "大稻埕米食",
+              "nameEn": "Dadaocheng Rice Dishes",
+              "cuisine": "Taiwanese Traditional",
+              "price": "NT$80-160",
+              "rating": "4.4★",
+              "lat": 25.0556,
+              "lng": 121.5090,
+              "note": "อาหารท้องถิ่น ย่านเก่า Dihua St. · หมี่สั่ว ข้าวต้ม"
+            },
+            {
+              "rank": 3,
+              "name": "行天宮素食",
+              "nameEn": "Xingtian Vegetarian",
+              "cuisine": "Vegetarian",
+              "price": "NT$100-180",
+              "rating": "4.3★",
+              "lat": 25.0629,
+              "lng": 121.5330,
+              "note": "อาหารเจใกล้วัด · สะอาด ถูก ดี เหมาะหลังไหว้พระ"
+            },
+            {
+              "rank": 4,
+              "name": "林家乾麵",
+              "nameEn": "Lin's Dry Noodles",
+              "cuisine": "Taiwanese Noodles",
+              "price": "NT$60-100",
+              "rating": "4.2★",
+              "lat": 25.0618,
+              "lng": 121.5342,
+              "note": "เส้นบะหมี่แห้งสูตรต้นตำรับ · เร็ว ถูก อิ่ม"
+            }
+          ]
+        },
+        {
+          "id": "d3meal2",
+          "slot": "🌙 Dinner",
+          "time": "~21:00",
+          "area": "Shilin Night Market",
+          "options": [
+            {
+              "rank": 1,
+              "name": "豪大大雞排",
+              "nameEn": "Huge Fried Chicken Cutlet",
+              "cuisine": "Fried Chicken",
+              "price": "NT$65-75",
+              "rating": "4.5★",
+              "lat": 25.0885,
+              "lng": 121.5240,
+              "note": "ไก่ทอดชุบแป้งชิ้นใหญ่กว่าหน้า · ไอคอน Shilin"
+            },
+            {
+              "rank": 2,
+              "name": "大餅包小餅",
+              "nameEn": "Big Cake Wraps Small Cake",
+              "cuisine": "Taiwanese Dessert",
+              "price": "NT$40-55",
+              "rating": "4.5★",
+              "lat": 25.0887,
+              "lng": 121.5243,
+              "note": "ขนมดังเฉพาะ Shilin · แป้งกรอบ ไส้หวาน-เค็ม"
+            },
+            {
+              "rank": 3,
+              "name": "蚵仔煎",
+              "nameEn": "Oyster Omelette",
+              "cuisine": "Taiwanese Omelette",
+              "price": "NT$80-110",
+              "rating": "4.3★",
+              "lat": 25.0883,
+              "lng": 121.5245,
+              "note": "ไข่เจียวหอยนางรม ซอสหวานเปรี้ยว · อาหารไต้หวันต้องลอง"
+            },
+            {
+              "rank": 4,
+              "name": "臭豆腐",
+              "nameEn": "Stinky Tofu",
+              "cuisine": "Taiwanese Street Food",
+              "price": "NT$60-80",
+              "rating": "4.2★",
+              "lat": 25.0884,
+              "lng": 121.5244,
+              "note": "เต้าหู้กลิ่นแรงแต่อร่อยมาก · ทอดกรอบ + กิมจิ"
+            }
+          ]
+        }
       ]
     },
     {
@@ -57,6 +364,49 @@
         { "id": "d4p1", "time": "09:30", "icon": "🛍️", "name": "Shin Kong Mitsukoshi",    "lat": 25.0459, "lng": 121.5153, "note": "ช้อปของฝาก · Zhongxiao Xinsheng" },
         { "id": "d4p2", "time": "11:00", "icon": "🚕",  "name": "Taxi → Taoyuan Airport", "lat": null,    "lng": null,    "note": "~45 min · ประมาณ NT$1,200" },
         { "id": "d4p3", "time": "13:55", "icon": "✈️",  "name": "Starlux JX745 → Bangkok","lat": 25.0797, "lng": 121.2325, "note": "Taoyuan T2 → BKK · Safe travels!" }
+      ],
+      "meals": [
+        {
+          "id": "d4meal1",
+          "slot": "🌅 Breakfast",
+          "time": "~08:30",
+          "area": "Ximending (ก่อน Check-out)",
+          "options": [
+            {
+              "rank": 1,
+              "name": "阜杭豆漿",
+              "nameEn": "Fuhang Soy Milk",
+              "cuisine": "Taiwanese Breakfast",
+              "price": "NT$40-80",
+              "rating": "4.6★",
+              "lat": 25.0473,
+              "lng": 121.5282,
+              "note": "มื้อเช้าสุดท้ายในไทเป · ถ้าไม่ได้กินยังต้องกลับมาอีก!"
+            },
+            {
+              "rank": 2,
+              "name": "永和豆漿大王",
+              "nameEn": "Yonghe Soy Milk King",
+              "cuisine": "Taiwanese Breakfast",
+              "price": "NT$30-70",
+              "rating": "4.3★",
+              "lat": 25.0451,
+              "lng": 121.5020,
+              "note": "เปิด 24 ชม. · สะดวกก่อน Check-out"
+            },
+            {
+              "rank": 3,
+              "name": "Convenience Store Breakfast",
+              "nameEn": "7-Eleven / FamilyMart",
+              "cuisine": "Quick Grab",
+              "price": "NT$60-100",
+              "rating": "4.0★",
+              "lat": 25.0450,
+              "lng": 121.5096,
+              "note": "ข้าวปั้น สปาเก็ตตี้อุ่น ไข่ต้ม · เร็วสุด ถ้าเวลาน้อย"
+            }
+          ]
+        }
       ]
     }
   ]
