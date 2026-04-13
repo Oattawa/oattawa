@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0f0f" id="metaTheme">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Taipei 2026">
+  <meta name="description" content="Taipei Trip 2026 · 14–17 April · Day-by-day itinerary">
+  <title>Taipei Trip 2026</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    /* ── Variables ───────────────────────────────────── */
+    :root {
+      --bg:      #0f0f0f;
+      --card:    #181818;
+      --raised:  #222;
+      --text:    #e8e0d5;
+      --muted:   #6a5a4a;
+      --accent:  #C8A97E;
+      --border:  #2e2e2e;
+      --shadow:  0 4px 20px rgba(0,0,0,.6);
+      --r:       12px;
+      --font:    Georgia, 'Times New Roman', serif;
+    }
+    [data-theme="light"] {
+      --bg:     #f4ede4;
+      --card:   #fff;
+      --raised: #ece4db;
+      --text:   #2a200e;
+      --muted:  #8a7060;
+      --accent: #8a6030;
+      --border: #d4c8bc;
+      --shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+
+    /* ── Reset ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100svh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    .hdr {
+      position: sticky; top: 0; z-index: 200;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 10px;
+      padding-top: calc(14px + env(safe-area-inset-top));
+    }
+    .hdr-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .hdr-title { flex: 1; }
+    .hdr-title h1 { font-size: 1.25rem; color: var(--accent); letter-spacing: .04em; }
+    .hdr-title p  { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+    .hdr-actions  { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .btn {
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--text); padding: 7px 13px; border-radius: 8px;
+      cursor: pointer; font-family: var(--font); font-size: .8rem;
+      transition: background .15s, color .15s, border-color .15s; white-space: nowrap;
+    }
+    .btn:hover { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
+    .btn-icon { padding: 7px 10px; font-size: 1rem; }
+
+    /* ── Search ──────────────────────────────────────── */
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      width: 100%; background: var(--raised); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 36px 8px 12px; border-radius: 8px;
+      font-family: var(--font); font-size: .9rem; outline: none;
+      transition: border-color .15s;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-clear {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 1rem; padding: 0 2px; display: none;
+    }
+    .search-clear.vis { display: block; }
+
+    /* ── Day Tabs ─────────────────────────────────────── */
+    .tabs {
+      display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex-shrink: 0; background: var(--raised); border: 2px solid transparent;
+      color: var(--text); padding: 8px 16px; border-radius: var(--r);
+      cursor: pointer; font-family: var(--font); font-size: .78rem;
+      text-align: center; transition: border-color .2s, color .2s; line-height: 1.4;
+    }
+    .tab strong { display: block; font-size: 1rem; }
+    .tab.active { border-color: var(--tab-c); color: var(--tab-c); background: var(--bg); }
+
+    /* ── Map ─────────────────────────────────────────── */
+    #map { height: 260px; width: 100%; z-index: 1; }
+    @media (min-width: 600px) { #map { height: 320px; } }
+    .map-pin {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; border: 2.5px solid rgba(255,255,255,.8);
+      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+
+    /* ── Content ─────────────────────────────────────── */
+    .content { padding: 16px; max-width: 700px; margin: 0 auto; }
+    .day-hdr { margin-bottom: 16px; }
+    .day-hdr h2 { font-size: 1.1rem; letter-spacing: .03em; }
+    .day-hdr .theme { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Place List ──────────────────────────────────── */
+    .plist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .pcard {
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 4px solid var(--dc, var(--accent));
+      border-radius: var(--r); padding: 12px 14px;
+      display: flex; align-items: flex-start; gap: 12px;
+      transition: box-shadow .15s;
+    }
+    .pcard:hover { box-shadow: var(--shadow); }
+    .pcard.sortable-ghost  { opacity: .35; }
+    .pcard.sortable-chosen { cursor: grabbing; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+
+    .drag-h { color: var(--muted); cursor: grab; font-size: 1.1rem; flex-shrink: 0; user-select: none; padding-top: 1px; }
+    .p-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; padding-top: 1px; }
+    .p-info { flex: 1; min-width: 0; }
+    .p-time { font-size: .72rem; color: var(--muted); font-family: 'Courier New', monospace; letter-spacing: .05em; margin-bottom: 3px; }
+    .p-name { font-size: .95rem; font-weight: bold; line-height: 1.3; }
+    .p-note { font-size: .78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .loc-btn {
+      background: none; border: none; cursor: pointer; font-size: 1rem;
+      padding: 2px; opacity: .6; transition: opacity .15s; flex-shrink: 0;
+    }
+    .loc-btn:hover { opacity: 1; }
+
+    /* ── Search View ─────────────────────────────────── */
+    #searchView { display: none; }
+    .s-badge {
+      display: inline-block; font-size: .7rem; padding: 2px 8px;
+      border-radius: 20px; color: #fff; margin-right: 8px; opacity: .85;
+    }
+    .s-hdr { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+    .no-result { text-align: center; color: var(--muted); padding: 40px 0; font-size: .95rem; }
+
+    /* ── Print View ──────────────────────────────────── */
+    #printView { display: none; }
+    .pr-day { margin-bottom: 28px; }
+    .pr-title {
+      font-size: 1rem; font-weight: bold;
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 6px; margin-bottom: 12px;
+    }
+
+    /* ── Toast ───────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%) translateY(10px);
+      background: var(--raised); border: 1px solid var(--accent);
+      color: var(--text); padding: 10px 20px; border-radius: 20px;
+      font-size: .85rem; z-index: 9999; opacity: 0; pointer-events: none;
+      transition: opacity .25s, transform .25s; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Print Media ─────────────────────────────────── */
+    @media print {
+      .hdr, .tabs, #map, #singleView, #searchView, #toast { display: none !important; }
+      #printView { display: block !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .pr-head { font-size: 18pt; text-align: center; margin-bottom: 24px; }
+      .pr-day  { page-break-inside: avoid; }
+      .pr-title { color: #000 !important; border-color: #000 !important; }
+      .pcard {
+        background: #f8f8f8 !important; border-color: #ccc !important;
+        break-inside: avoid; margin-bottom: 6px;
+      }
+      .drag-h, .loc-btn { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════ -->
+<header class="hdr">
+  <div class="hdr-row">
+    <div class="hdr-title">
+      <h1>🗺 Taipei Trip 2026</h1>
+      <p>14 – 17 April · 4 Days · ไทเป</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-icon" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="btn" id="printBtn">🖨 PDF</button>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <input type="search" id="searchInput" placeholder="🔍  ค้นหาสถานที่..." autocomplete="off" spellcheck="false">
+    <button class="search-clear" id="searchClear" aria-label="Clear">✕</button>
+  </div>
+</header>
+
+<!-- ═══ DAY TABS ══════════════════════════════════════ -->
+<nav class="tabs" id="tabs"></nav>
+
+<!-- ═══ MAP ═══════════════════════════════════════════ -->
+<div id="map"></div>
+
+<!-- ═══ MAIN ══════════════════════════════════════════ -->
+<main>
+  <!-- Normal single-day view -->
+  <div class="content" id="singleView">
+    <div class="day-hdr" id="dayHdr"></div>
+    <ul class="plist" id="placeList"></ul>
+  </div>
+
+  <!-- Search results -->
+  <div class="content" id="searchView">
+    <div class="s-hdr" id="sHdr"></div>
+    <ul class="plist" id="sList"></ul>
+  </div>
+
+  <!-- All-days print view -->
+  <div class="content" id="printView">
+    <div class="pr-head">🗺 Taipei Trip 2026 &nbsp;·&nbsp; 14–17 April</div>
+    <div id="printDays"></div>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ═══ SCRIPTS ════════════════════════════════════════ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPaA=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+'use strict';
+
+/* ── Fallback data (offline / fetch fail) ──────────── */
+const FALLBACK = {
+  days: [
+    { day:1, date:"14 APR TUE", theme:"✈️ มาถึง + Ximending",             color:"#C8A97E",
+      places:[
+        {id:"d1p1",time:"18:00",icon:"🛬",name:"Taoyuan Airport T2",  lat:25.0797,lng:121.2325,note:"Terminal 2 · Arrivals"},
+        {id:"d1p2",time:"19:00",icon:"🚇",name:"Airport MRT → Ximen", lat:null,   lng:null,   note:"Airport Express · ~40 min"},
+        {id:"d1p3",time:"19:30",icon:"🏨",name:"Just Sleep Ximending",lat:25.0450,lng:121.5096,note:"Hotel check-in"},
+        {id:"d1p4",time:"20:00",icon:"🌙",name:"Ximending",           lat:25.0428,lng:121.5077,note:"Night walk & street food"}
+      ]},
+    { day:2, date:"15 APR WED", theme:"🪙 วัดเงิน + Bitan + วิว 101",    color:"#D4956A",
+      places:[
+        {id:"d2p1",time:"09:00",icon:"🪙",name:"Hongludi Nanshan Fude Temple",lat:24.9718,lng:121.4976,note:"วัดเงิน · สักการะเทพแห่งโชคลาภ"},
+        {id:"d2p2",time:"11:00",icon:"🌊",name:"Bitan Scenic Area",          lat:24.9560,lng:121.5365,note:"ล่องเรือ · วิวสวยริมแม่น้ำ"},
+        {id:"d2p3",time:"14:00",icon:"☕",name:"YABOO Cafe Yongkang",         lat:25.0304,lng:121.5306,note:"Specialty coffee · พักบ่าย"},
+        {id:"d2p4",time:"16:30",icon:"🌅",name:"Elephant Mountain",           lat:25.0272,lng:121.5765,note:"ขึ้นเขาดูวิว Taipei 101 ยามเย็น"},
+        {id:"d2p5",time:"19:30",icon:"🏮",name:"Raohe Night Market",          lat:25.0509,lng:121.5775,note:"ตลาดคืน · อาหารอร่อย"}
+      ]},
+    { day:3, date:"16 APR THU", theme:"🙏 วัด 3 แห่ง + Museum + 101 + Shilin", color:"#8B9E6B",
+      places:[
+        {id:"d3p1",time:"07:30",icon:"🛒",name:"Chengzhong Market",           lat:25.0436,lng:121.5122,note:"ตลาดเช้า · อาหารเช้าแบบท้องถิ่น"},
+        {id:"d3p2",time:"09:15",icon:"🙏",name:"Lungshan Temple",             lat:25.0373,lng:121.4999,note:"วัดเก่าแก่ที่สุดของไทเป"},
+        {id:"d3p3",time:"11:00",icon:"🏮",name:"Xia Hai City God Temple",     lat:25.0556,lng:121.5102,note:"วัดเทพเจ้าแห่งเมือง · Dihua St."},
+        {id:"d3p4",time:"12:15",icon:"⚔️",name:"Xingtian Temple",            lat:25.0629,lng:121.5339,note:"วัดกวนอู · ยิ่งใหญ่อลังการ"},
+        {id:"d3p5",time:"14:00",icon:"🏛️",name:"Miniatures Museum of Taiwan",lat:25.0504,lng:121.5361,note:"พิพิธภัณฑ์บ้านจิ๋ว สุดน่าทึ่ง"},
+        {id:"d3p6",time:"17:00",icon:"🏙️",name:"Taipei 101 Mall",            lat:25.0341,lng:121.5640,note:"ช้อปปิ้ง + วิวตึก 101"},
+        {id:"d3p7",time:"21:00",icon:"🎡",name:"Shilin Night Market",         lat:25.0885,lng:121.5244,note:"ตลาดคืนใหญ่ที่สุดในไทเป"}
+      ]},
+    { day:4, date:"17 APR FRI", theme:"🛍️ ของฝาก + บินกลับ",              color:"#7B9CB3",
+      places:[
+        {id:"d4p1",time:"09:30",icon:"🛍️",name:"Shin Kong Mitsukoshi",    lat:25.0459,lng:121.5153,note:"ช้อปของฝาก · Zhongxiao Xinsheng"},
+        {id:"d4p2",time:"11:00",icon:"🚕", name:"Taxi → Taoyuan Airport", lat:null,   lng:null,   note:"~45 min · ประมาณ NT$1,200"},
+        {id:"d4p3",time:"13:55",icon:"✈️", name:"Starlux JX745 → Bangkok",lat:25.0797,lng:121.2325,note:"Taoyuan T2 → BKK · Safe travels!"}
+      ]}
+  ]
+};
+
+/* ── State ─────────────────────────────────────────── */
+let data = null;
+let curDay = 0;
+let isDark = true;
+let map, tileLayer, markers = [], sortable = null;
+
+/* ── Init ──────────────────────────────────────────── */
+async function init() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  applyTheme(saved === 'dark', false);
+
+  try {
+    const res = await fetch('./data/itinerary.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+  } catch (e) {
+    console.warn('Offline – using fallback data', e);
+    data = JSON.parse(JSON.stringify(FALLBACK));
+  }
+
+  buildTabs();
+  initMap();
+  selectDay(0);
+  buildPrintView();
+  bindEvents();
+}
+
+/* ── Tabs ──────────────────────────────────────────── */
+function buildTabs() {
+  const nav = document.getElementById('tabs');
+  nav.innerHTML = '';
+  data.days.forEach((day, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.style.setProperty('--tab-c', day.color);
+    const parts = day.date.split(' ');
+    btn.innerHTML = `<strong>Day ${day.day}</strong><span>${parts[0]} ${parts[1]}</span>`;
+    btn.addEventListener('click', () => { clearSearch(); selectDay(i); });
+    nav.appendChild(btn);
+  });
+}
+
+function setActiveTab(i) {
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+}
+
+/* ── Select Day ────────────────────────────────────── */
+function selectDay(i) {
+  curDay = i;
+  setActiveTab(i);
+  renderDay(i);
+  updateMap(i);
+}
+
+/* ── Render Day ────────────────────────────────────── */
+function renderDay(i) {
+  const day = data.days[i];
+  document.getElementById('dayHdr').innerHTML =
+    `<h2 style="color:${day.color}">Day ${day.day} · ${day.date}</h2>
+     <p class="theme">${day.theme}</p>`;
+
+  const list = document.getElementById('placeList');
+  list.innerHTML = '';
+  day.places.forEach(p => list.appendChild(makeCard(p, day.color, true)));
+
+  if (sortable) sortable.destroy();
+  sortable = Sortable.create(list, {
+    handle: '.drag-h', animation: 180,
+    ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+    onEnd({ oldIndex, newIndex }) {
+      if (oldIndex === newIndex) return;
+      const [mv] = day.places.splice(oldIndex, 1);
+      day.places.splice(newIndex, 0, mv);
+      toast('ย้ายสถานที่เรียบร้อย ✓');
+    }
+  });
+}
+
+/* ── Place Card ────────────────────────────────────── */
+function makeCard(p, color, draggable) {
+  const li = document.createElement('li');
+  li.className = 'pcard';
+  li.style.setProperty('--dc', color);
+  const hasLL = p.lat != null;
+  li.innerHTML =
+    (draggable ? `<span class="drag-h" title="Drag to reorder">⠿</span>` : '') +
+    `<span class="p-icon">${p.icon}</span>
+     <div class="p-info">
+       <div class="p-time">${p.time}</div>
+       <div class="p-name">${esc(p.name)}</div>
+       ${p.note ? `<div class="p-note">${esc(p.note)}</div>` : ''}
+     </div>
+     ${hasLL ? `<button class="loc-btn" data-lat="${p.lat}" data-lng="${p.lng}" title="Show on map">📍</button>` : ''}`;
+  return li;
+}
+
+/* ── Map ───────────────────────────────────────────── */
+function initMap() {
+  map = L.map('map', { zoomControl: false, scrollWheelZoom: false });
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  setTiles();
+  map.setView([25.0478, 121.5319], 12);
+}
+
+function setTiles() {
+  if (tileLayer) map.removeLayer(tileLayer);
+  tileLayer = L.tileLayer(
+    isDark
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    { attribution: '© <a href="https://carto.com/">CartoDB</a>', subdomains: 'abcd', maxZoom: 19 }
+  ).addTo(map);
+}
+
+function updateMap(i) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const day = data.days[i];
+  const pts = day.places.filter(p => p.lat != null);
+  pts.forEach(p => {
+    const icon = L.divIcon({
+      html: `<div class="map-pin" style="background:${day.color}">${p.icon}</div>`,
+      className: '', iconSize: [36,36], iconAnchor: [18,18], popupAnchor: [0,-20]
+    });
+    const m = L.marker([p.lat, p.lng], { icon })
+      .bindPopup(`<b>${esc(p.name)}</b><br><small>${p.time}</small>`)
+      .addTo(map);
+    markers.push(m);
+  });
+  if (pts.length === 1) {
+    map.setView([pts[0].lat, pts[0].lng], 14);
+  } else if (pts.length > 1) {
+    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
+  }
+}
+
+function focusMarker(lat, lng) {
+  map.setView([lat, lng], 16, { animate: true });
+  const m = markers.find(mk => {
+    const ll = mk.getLatLng();
+    return Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001;
+  });
+  if (m) m.openPopup();
+  document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ── Search ────────────────────────────────────────── */
+function doSearch(q) {
+  q = q.trim().toLowerCase();
+  const sv = document.getElementById('singleView');
+  const rv = document.getElementById('searchView');
+  const clr = document.getElementById('searchClear');
+
+  if (!q) {
+    sv.style.display = '';
+    rv.style.display = 'none';
+    clr.classList.remove('vis');
+    return;
+  }
+  clr.classList.add('vis');
+  sv.style.display = 'none';
+  rv.style.display = '';
+
+  const results = [];
+  data.days.forEach(day =>
+    day.places.forEach(p => {
+      if (p.name.toLowerCase().includes(q) || (p.note && p.note.toLowerCase().includes(q)))
+        results.push({ p, day });
+    })
+  );
+
+  const hdr  = document.getElementById('sHdr');
+  const list = document.getElementById('sList');
+
+  if (!results.length) {
+    hdr.innerHTML = '';
+    list.innerHTML = `<li class="no-result">ไม่พบ "<em>${esc(q)}</em>"</li>`;
+    return;
+  }
+
+  hdr.innerHTML = `พบ <strong>${results.length}</strong> สถานที่`;
+  list.innerHTML = '';
+  results.forEach(({ p, day }) => {
+    const li = makeCard(p, day.color, false);
+    const badge = document.createElement('span');
+    badge.className = 's-badge';
+    badge.style.background = day.color;
+    badge.textContent = `Day ${day.day}`;
+    li.insertBefore(badge, li.firstChild);
+    list.appendChild(li);
+  });
+}
+
+function clearSearch() {
+  const inp = document.getElementById('searchInput');
+  inp.value = '';
+  doSearch('');
+}
+
+/* ── Print view ────────────────────────────────────── */
+function buildPrintView() {
+  document.getElementById('printDays').innerHTML = data.days.map(day => `
+    <div class="pr-day">
+      <div class="pr-title" style="color:${day.color}">Day ${day.day} · ${day.date} · ${day.theme}</div>
+      <ul class="plist">
+        ${day.places.map(p => `
+          <li class="pcard" style="--dc:${day.color}">
+            <span class="p-icon">${p.icon}</span>
+            <div class="p-info">
+              <div class="p-time">${p.time}</div>
+              <div class="p-name">${esc(p.name)}</div>
+              ${p.note ? `<div class="p-note">${esc(p.note)}</div>` : ''}
+            </div>
+          </li>`).join('')}
+      </ul>
+    </div>`).join('');
+}
+
+/* ── Theme ─────────────────────────────────────────── */
+function applyTheme(dark, updateMap_ = true) {
+  isDark = dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = dark ? '🌙' : '☀️';
+  document.getElementById('metaTheme').content = dark ? '#0f0f0f' : '#f4ede4';
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  if (updateMap_ && map) setTiles();
+}
+
+/* ── Toast ─────────────────────────────────────────── */
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ── Events ────────────────────────────────────────── */
+function bindEvents() {
+  document.getElementById('themeBtn').addEventListener('click', () => applyTheme(!isDark));
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  const inp = document.getElementById('searchInput');
+  inp.addEventListener('input', e => doSearch(e.target.value));
+  inp.addEventListener('keydown', e => { if (e.key === 'Escape') clearSearch(); });
+
+  document.getElementById('searchClear').addEventListener('click', () => {
+    clearSearch();
+    inp.focus();
+  });
+
+  // Delegated locate button
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.loc-btn');
+    if (!btn) return;
+    focusMarker(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lng));
+  });
+}
+
+/* ── Util ──────────────────────────────────────────── */
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
