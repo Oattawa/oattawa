@@ -147,6 +147,20 @@
     .p-time { font-size: .72rem; color: var(--muted); font-family: 'Courier New', monospace; letter-spacing: .05em; margin-bottom: 3px; }
     .p-name { font-size: .95rem; font-weight: bold; line-height: 1.3; }
     .p-note { font-size: .78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .p-meta { display: flex; align-items: center; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+    .dur-badge {
+      font-size: .7rem; padding: 2px 8px; border-radius: 20px; cursor: pointer;
+      background: var(--raised); border: 1px solid var(--border);
+      transition: border-color .15s; white-space: nowrap;
+    }
+    .dur-badge:hover { border-color: var(--accent); color: var(--accent); }
+    .dur-inp {
+      font-size: .7rem; width: 52px; padding: 2px 6px; border-radius: 6px;
+      background: var(--raised); border: 1px solid var(--accent);
+      color: var(--text); text-align: center; outline: none; font-family: monospace;
+    }
+    .dep-sep { font-size: .7rem; color: var(--border); }
+    .dep-time { font-size: .7rem; color: var(--muted); font-family: 'Courier New', monospace; }
     .card-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
     .loc-btn, .del-btn {
       background: none; border: none; cursor: pointer; font-size: 1rem;
@@ -517,7 +531,7 @@ function renderDay(i) {
   list.innerHTML = '';
 
   day.places.forEach((p, pi) => {
-    const card = makeCard(p, day.color, true);
+    const card = makeCard(p, day.color, true, i, pi);
     card.dataset.placeIdx = pi;
     list.appendChild(card);
     if (pi < day.places.length - 1) {
@@ -550,11 +564,13 @@ function renderDay(i) {
 }
 
 /* ── Place Card ────────────────────────────────────── */
-function makeCard(p, color, draggable) {
+function makeCard(p, color, draggable, dayIdx, placeIdx) {
   const li = document.createElement('li');
   li.className = 'pcard';
   li.style.setProperty('--dc', color);
   const hasLL = p.lat != null;
+  const dur = p.duration || 60;
+
   li.innerHTML =
     (draggable ? `<span class="drag-h" title="Drag to reorder">⠿</span>` : '') +
     `<span class="p-icon">${p.icon}</span>
@@ -562,11 +578,70 @@ function makeCard(p, color, draggable) {
        <div class="p-time">${p.time}</div>
        <div class="p-name">${esc(p.name)}</div>
        ${p.note ? `<div class="p-note">${esc(p.note)}</div>` : ''}
+       ${draggable ? `<div class="p-meta">
+         <span class="dur-badge" title="เวลาที่ใช้ที่สถานที่นี้ (คลิกเพื่อแก้)">⏱ ${fmtDur(dur)}</span>
+         <span class="dep-sep">→ ออก</span>
+         <span class="dep-time">${getDep(p)}</span>
+       </div>` : ''}
      </div>
      <div class="card-actions">
        ${hasLL ? `<button class="loc-btn" data-lat="${p.lat}" data-lng="${p.lng}" title="Show on map">📍</button>` : ''}
        ${draggable ? `<button class="del-btn" title="ลบสถานที่นี้">🗑</button>` : ''}
      </div>`;
+
+  if (draggable && dayIdx !== undefined) {
+    const durBadge = li.querySelector('.dur-badge');
+    durBadge.addEventListener('click', e => {
+      e.stopPropagation();
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.min = 5; inp.max = 480;
+      inp.value = p.duration || 60; inp.className = 'dur-inp';
+      durBadge.replaceWith(inp);
+      inp.focus(); inp.select();
+
+      function saveDur() {
+        const val = Math.max(5, Math.min(480, parseInt(inp.value) || 60));
+        p.duration = val;
+        const newBadge = document.createElement('span');
+        newBadge.className = 'dur-badge';
+        newBadge.title = 'เวลาที่ใช้ที่สถานที่นี้ (คลิกเพื่อแก้)';
+        newBadge.textContent = `⏱ ${fmtDur(val)}`;
+        inp.replaceWith(newBadge);
+        // re-bind click
+        newBadge.addEventListener('click', durBadge.onclick);
+        makeCard._rebind(newBadge, p, dayIdx, placeIdx);
+        // update departure display
+        const depEl = li.querySelector('.dep-time');
+        if (depEl) depEl.textContent = getDep(p);
+        // cascade
+        cascadeTimes(dayIdx, placeIdx);
+      }
+      inp.addEventListener('blur', saveDur);
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') inp.blur(); });
+    });
+    makeCard._rebind = (badge, place, dIdx, pIdx) => {
+      badge.addEventListener('click', e => {
+        e.stopPropagation();
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.min = 5; inp.max = 480;
+        inp.value = place.duration || 60; inp.className = 'dur-inp';
+        badge.replaceWith(inp); inp.focus(); inp.select();
+        function save() {
+          const val = Math.max(5, Math.min(480, parseInt(inp.value) || 60));
+          place.duration = val;
+          const nb = document.createElement('span');
+          nb.className = 'dur-badge'; nb.title = 'คลิกเพื่อแก้';
+          nb.textContent = `⏱ ${fmtDur(val)}`;
+          inp.replaceWith(nb); makeCard._rebind(nb, place, dIdx, pIdx);
+          const depEl = nb.closest('.pcard')?.querySelector('.dep-time');
+          if (depEl) depEl.textContent = getDep(place);
+          cascadeTimes(dIdx, pIdx);
+        }
+        inp.addEventListener('blur', save);
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') inp.blur(); });
+      });
+    };
+  }
   return li;
 }
 
@@ -849,9 +924,17 @@ function travelEst(km) {
 function parseMins(t) {
   const [h, m] = (t || '00:00').split(':').map(Number);
   return h * 60 + m;
+
 }
 function fmtTime(mins) {
   return `${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
+}
+function fmtDur(m) {
+  if (m < 60) return `${m}m`;
+  return m % 60 ? `${Math.floor(m/60)}h${m%60}m` : `${Math.floor(m/60)}h`;
+}
+function getDep(place) {
+  return fmtTime(parseMins(place.time) + (place.duration || 60));
 }
 
 /* Cascade times from transit[startIdx] onwards using stored transitModes */
@@ -865,12 +948,16 @@ function cascadeTimes(dayIdx, startIdx) {
   for (let i = startIdx; i < day.places.length - 1; i++) {
     const m = day.transitModes[i];
     if (!m) continue;
-    const newTime = fmtTime(parseMins(day.places[i].time) + m.minutes);
+    // departure = arrival + duration; next arrival = departure + transit
+    const dep = parseMins(day.places[i].time) + (day.places[i].duration || 60);
+    const newTime = fmtTime(dep + m.minutes);
     day.places[i + 1].time = newTime;
-    // update DOM directly — avoid full re-render to keep transit rows state
     if (pcards[i + 1]) {
       const el = pcards[i + 1].querySelector('.p-time');
       if (el) el.textContent = newTime;
+      // also refresh departure display of place i
+      const depEl = pcards[i] ? pcards[i].querySelector('.dep-time') : null;
+      if (depEl) depEl.textContent = fmtTime(dep);
     }
   }
 }
