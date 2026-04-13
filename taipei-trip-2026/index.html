@@ -118,6 +118,16 @@
     .day-hdr h2 { font-size: 1.1rem; letter-spacing: .03em; }
     .day-hdr .theme { font-size: .85rem; color: var(--muted); margin-top: 2px; }
 
+    /* ── Day Header ──────────────────────────────────── */
+    .day-hdr-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .reset-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: .75rem;
+      font-family: var(--font); white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+      transition: border-color .15s, color .15s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
     /* ── Place List ──────────────────────────────────── */
     .plist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .pcard {
@@ -395,6 +405,7 @@ let curDay = 0;
 let isDark = false;
 let map, tileLayer, markers = [], sortable = null;
 let routeLine = null, gpsMarker = null, mrtLayers = [], mrtVisible = false;
+let originalData = null;
 
 /* ── MRT Line Data ─────────────────────────────────── */
 const MRT_LINES = [
@@ -440,7 +451,11 @@ async function init() {
   } catch (e) {
     console.warn('Offline – using fallback data', e);
     data = JSON.parse(JSON.stringify(FALLBACK));
+
   }
+
+  // snapshot original data for reset
+  originalData = JSON.parse(JSON.stringify(data));
 
   buildTabs();
   initMap();
@@ -476,12 +491,27 @@ function selectDay(i) {
   updateMap(i);
 }
 
+/* ── Reset Day ─────────────────────────────────────── */
+function resetDay(i) {
+  if (!originalData) return;
+  if (!confirm(`รีเซ็ต Day ${data.days[i].day} กลับเป็นแผนเดิม?`)) return;
+  data.days[i].places = JSON.parse(JSON.stringify(originalData.days[i].places));
+  delete data.days[i].transitModes;
+  selectDay(i);
+  toast(`Day ${data.days[i].day} รีเซ็ตแล้ว ✓`);
+}
+
 /* ── Render Day ────────────────────────────────────── */
 function renderDay(i) {
   const day = data.days[i];
   document.getElementById('dayHdr').innerHTML =
-    `<h2 style="color:${day.color}">Day ${day.day} · ${day.date}</h2>
-     <p class="theme">${day.theme}</p>`;
+    `<div class="day-hdr-row">
+       <div>
+         <h2 style="color:${day.color}">Day ${day.day} · ${day.date}</h2>
+         <p class="theme">${day.theme}</p>
+       </div>
+       <button class="reset-btn" onclick="resetDay(${i})" title="รีเซ็ตกลับแผนเดิม">↺ default</button>
+     </div>`;
 
   const list = document.getElementById('placeList');
   list.innerHTML = '';
@@ -491,7 +521,7 @@ function renderDay(i) {
     card.dataset.placeIdx = pi;
     list.appendChild(card);
     if (pi < day.places.length - 1) {
-      const tr = makeTransitRow(p, day.places[pi + 1]);
+      const tr = makeTransitRow(p, day.places[pi + 1], i, pi);
       if (tr) list.appendChild(tr);
     }
   });
@@ -816,15 +846,49 @@ function travelEst(km) {
   return { walk, mrt, taxi, ntd, km: km.toFixed(1) };
 }
 
-function makeTransitRow(p1, p2) {
+function parseMins(t) {
+  const [h, m] = (t || '00:00').split(':').map(Number);
+  return h * 60 + m;
+}
+function fmtTime(mins) {
+  return `${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
+}
+
+/* Cascade times from transit[startIdx] onwards using stored transitModes */
+function cascadeTimes(dayIdx, startIdx) {
+  const day = data.days[dayIdx];
+  if (!day.transitModes) return;
+  const list = document.getElementById('placeList');
+  if (!list) return;
+  const pcards = [...list.querySelectorAll('.pcard')];
+
+  for (let i = startIdx; i < day.places.length - 1; i++) {
+    const m = day.transitModes[i];
+    if (!m) continue;
+    const newTime = fmtTime(parseMins(day.places[i].time) + m.minutes);
+    day.places[i + 1].time = newTime;
+    // update DOM directly — avoid full re-render to keep transit rows state
+    if (pcards[i + 1]) {
+      const el = pcards[i + 1].querySelector('.p-time');
+      if (el) el.textContent = newTime;
+    }
+  }
+}
+
+function makeTransitRow(p1, p2, dayIdx, transitIdx) {
   if (!p1.lat || !p2.lat) return null;
   const est = travelEst(haversine(p1.lat, p1.lng, p2.lat, p2.lng));
   const modes = [
-    { key:'walk',  icon:'🚶', label:`${est.walk} นาที`,              gmMode:'walking'  },
-    { key:'mrt',   icon:'🚇', label:`~${est.mrt} นาที`,             gmMode:'transit'  },
-    { key:'taxi',  icon:'🚕', label:`~${est.taxi} นาที ≈NT$${est.ntd}`, gmMode:'driving' }
+    { key:'walk', icon:'🚶', label:`${est.walk} นาที`,                  minutes: est.walk, gmMode:'walking'  },
+    { key:'mrt',  icon:'🚇', label:`~${est.mrt} นาที`,                  minutes: est.mrt,  gmMode:'transit'  },
+    { key:'taxi', icon:'🚕', label:`~${est.taxi} นาที ≈NT$${est.ntd}`,  minutes: est.taxi, gmMode:'driving'  }
   ];
-  let selMode = modes[1]; // default: MRT
+
+  // restore previously selected mode if any
+  const day = data.days[dayIdx];
+  if (!day.transitModes) day.transitModes = {};
+  const saved = day.transitModes[transitIdx];
+  let selMode = saved ? modes.find(m => m.key === saved.key) || modes[1] : modes[1];
 
   const li = document.createElement('li');
   li.className = 'transit-row';
@@ -854,8 +918,11 @@ function makeTransitRow(p1, p2) {
       btn.addEventListener('click', e => {
         e.stopPropagation();
         selMode = modes.find(m => m.key === btn.dataset.mode);
+        day.transitModes[transitIdx] = selMode;
         li.classList.add('open');
         render();
+        cascadeTimes(dayIdx, transitIdx);
+        toast(`อัปเดตเวลาจาก ${selMode.icon} แล้ว`);
       });
     });
   }
