@@ -118,6 +118,16 @@
     .day-hdr h2 { font-size: 1.1rem; letter-spacing: .03em; }
     .day-hdr .theme { font-size: .85rem; color: var(--muted); margin-top: 2px; }
 
+    /* ── Day Header ──────────────────────────────────── */
+    .day-hdr-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .reset-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: .75rem;
+      font-family: var(--font); white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+      transition: border-color .15s, color .15s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
     /* ── Place List ──────────────────────────────────── */
     .plist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .pcard {
@@ -395,6 +405,7 @@ let curDay = 0;
 let isDark = false;
 let map, tileLayer, markers = [], sortable = null;
 let routeLine = null, gpsMarker = null, mrtLayers = [], mrtVisible = false;
+let originalData = null;
 
 /* ── MRT Line Data ─────────────────────────────────── */
 const MRT_LINES = [
@@ -440,7 +451,11 @@ async function init() {
   } catch (e) {
     console.warn('Offline – using fallback data', e);
     data = JSON.parse(JSON.stringify(FALLBACK));
+
   }
+
+  // snapshot original data for reset
+  originalData = JSON.parse(JSON.stringify(data));
 
   buildTabs();
   initMap();
@@ -476,12 +491,27 @@ function selectDay(i) {
   updateMap(i);
 }
 
+/* ── Reset Day ─────────────────────────────────────── */
+function resetDay(i) {
+  if (!originalData) return;
+  if (!confirm(`รีเซ็ต Day ${data.days[i].day} กลับเป็นแผนเดิม?`)) return;
+  data.days[i].places = JSON.parse(JSON.stringify(originalData.days[i].places));
+  delete data.days[i].transitModes;
+  selectDay(i);
+  toast(`Day ${data.days[i].day} รีเซ็ตแล้ว ✓`);
+}
+
 /* ── Render Day ────────────────────────────────────── */
 function renderDay(i) {
   const day = data.days[i];
   document.getElementById('dayHdr').innerHTML =
-    `<h2 style="color:${day.color}">Day ${day.day} · ${day.date}</h2>
-     <p class="theme">${day.theme}</p>`;
+    `<div class="day-hdr-row">
+       <div>
+         <h2 style="color:${day.color}">Day ${day.day} · ${day.date}</h2>
+         <p class="theme">${day.theme}</p>
+       </div>
+       <button class="reset-btn" onclick="resetDay(${i})" title="รีเซ็ตกลับแผนเดิม">↺ default</button>
+     </div>`;
 
   const list = document.getElementById('placeList');
   list.innerHTML = '';
