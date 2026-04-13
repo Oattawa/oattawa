@@ -257,8 +257,61 @@
     }
     .nom-result:hover, .nom-result.selected { background: var(--raised); border-color: var(--accent); }
     .nom-name { font-weight: bold; font-size: .88rem; }
+    .nom-local { font-weight: normal; font-size: .78rem; color: var(--muted); margin-left: 4px; }
     .nom-addr { font-size: .73rem; color: var(--muted); margin-top: 2px; }
     .nom-empty { color: var(--muted); font-size: .85rem; padding: 10px 0; }
+
+    /* ── Meals Section ───────────────────────────────── */
+    .meals-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .meals-hdr { font-size: .78rem; font-weight: bold; color: var(--muted); letter-spacing: .06em;
+                 text-transform: uppercase; margin-bottom: 12px; }
+    .meal-slot { margin-bottom: 16px; }
+    .meal-slot-hdr {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
+    }
+    .meal-slot-title { font-size: .92rem; font-weight: bold; color: var(--text); }
+    .meal-slot-time  { font-size: .72rem; color: var(--muted); }
+    .meal-slot-area  { font-size: .72rem; color: var(--accent); }
+    .meal-opts { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+                 scrollbar-width: none; }
+    .meal-opts::-webkit-scrollbar { display: none; }
+    .meal-opt {
+      flex: 0 0 auto; width: 160px; background: var(--card);
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      cursor: pointer; transition: border-color .15s, box-shadow .15s; position: relative;
+    }
+    .meal-opt:hover { border-color: var(--accent); }
+    .meal-opt.selected {
+      border-color: var(--accent); background: var(--raised);
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .meal-opt.selected::after { content: '✓'; position: absolute; top: 7px; right: 9px;
+      color: var(--accent); font-size: .8rem; font-weight: bold; }
+    .rank-badge {
+      display: inline-block; font-size: .65rem; font-weight: bold; padding: 1px 6px;
+      border-radius: 10px; background: var(--raised); border: 1px solid var(--border);
+      color: var(--muted); margin-bottom: 5px;
+    }
+    .meal-opt:nth-child(1) .rank-badge { background: #ffd700; border-color: #c8a600; color: #5a4200; }
+    .meal-opt:nth-child(2) .rank-badge { background: #d8d8d8; border-color: #a0a0a0; color: #303030; }
+    .meal-opt:nth-child(3) .rank-badge { background: #e8b080; border-color: #b06820; color: #3a1800; }
+    .meal-opt-name { font-size: .82rem; font-weight: bold; color: var(--text);
+                     line-height: 1.3; margin-bottom: 3px; }
+    .meal-opt-local { font-size: .72rem; color: var(--muted); margin-bottom: 4px; }
+    .meal-opt-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .meal-tag {
+      font-size: .65rem; padding: 2px 6px; border-radius: 8px;
+      background: var(--raised); border: 1px solid var(--border); color: var(--muted);
+    }
+    .meal-tag.price { color: var(--accent); border-color: var(--accent); }
+    .meal-opt-note { font-size: .7rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+    .meal-map-btn {
+      display: block; width: 100%; margin-top: 8px; padding: 4px 0;
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); font-size: .7rem; cursor: pointer; font-family: var(--font);
+      transition: border-color .15s, color .15s;
+    }
+    .meal-map-btn:hover { border-color: var(--accent); color: var(--accent); }
     .add-form { margin-top: 14px; display: none; }
     .add-form.vis { display: block; }
     .add-form-sel { font-size: .82rem; color: var(--accent); font-weight: bold; margin-bottom: 10px; }
@@ -327,6 +380,7 @@
   <div class="content" id="singleView">
     <div class="day-hdr" id="dayHdr"></div>
     <ul class="plist" id="placeList"></ul>
+    <div id="mealsSection"></div>
   </div>
 
   <!-- Search results -->
@@ -379,15 +433,23 @@
 /* ── Fallback data (offline / fetch fail) ──────────── */
 const FALLBACK = {
   days: [
-    { day:1, date:"14 APR TUE", theme:"✈️ มาถึง + Ximending",             color:"#C8A97E",
+    { day:1, date:"14 APR TUE", theme:"✈️ มาถึง + Ximending", color:"#C8A97E",
       places:[
         {id:"d1p1",time:"18:00",icon:"🛬",name:"Taoyuan Airport T2",  lat:25.0797,lng:121.2325,note:"Terminal 2 · Arrivals"},
         {id:"d1p2",time:"19:00",icon:"🚇",name:"Airport MRT → Ximen", lat:null,   lng:null,   note:"Airport Express · ~40 min"},
         {id:"d1p3",time:"19:30",icon:"🏨",name:"Just Sleep Ximending",lat:25.0450,lng:121.5096,note:"Hotel check-in"},
         {id:"d1p4",time:"20:00",icon:"🌙",name:"Ximending",           lat:25.0428,lng:121.5077,note:"Night walk & street food"},
         {id:"d1p5",time:"22:30",icon:"🏨",name:"Just Sleep Ximending",lat:25.0450,lng:121.5096,note:"กลับโรงแรม · นอนพักผ่อน",duration:480}
+      ],
+      meals:[
+        {id:"d1meal1",slot:"🌙 Dinner",time:"~20:00",area:"Ximending",options:[
+          {rank:1,name:"阿宗麵線",nameEn:"Ay-Chung Flour-Rice Noodle",cuisine:"Taiwanese",price:"NT$60-80",rating:"4.5★",lat:25.0429,lng:121.5062,note:"เส้นกึ่งสำเร็จ+เครื่องในหมู สัญลักษณ์ Ximending มากว่า 45 ปี"},
+          {rank:2,name:"Q House Cumin Lamb",nameEn:"Q House Cumin Lamb",cuisine:"Taiwanese Fusion",price:"NT$150-280",rating:"4.3★",lat:25.0421,lng:121.5050,note:"เนื้อแกะผัดยี่หร่า เมนูดังของ Ximending"},
+          {rank:3,name:"老天祿鹵味",nameEn:"Old Tian-Lu Marinated",cuisine:"Taiwanese Snacks",price:"NT$80-150",rating:"4.2★",lat:25.0434,lng:121.5060,note:"ของดองในน้ำปรุงรสสูตรโบราณ เคี้ยวเพลิน"},
+          {rank:4,name:"Ximending Street Food",nameEn:"Ximending Street Food",cuisine:"Street Food",price:"NT$50-150",rating:"4.0★",lat:25.0428,lng:121.5077,note:"แผงข้างทางหลากหลาย · ไก่ทอด หมึกย่าง ชานมไข่มุก"}
+        ]}
       ]},
-    { day:2, date:"15 APR WED", theme:"🪙 วัดเงิน + Bitan + วิว 101",    color:"#D4956A",
+    { day:2, date:"15 APR WED", theme:"🪙 วัดเงิน + Bitan + วิว 101", color:"#D4956A",
       places:[
         {id:"d2p0",time:"08:00",icon:"🏨",name:"Just Sleep Ximending",        lat:25.0450,lng:121.5096,note:"ออกจากโรงแรม",duration:15},
         {id:"d2p1",time:"09:00",icon:"🪙",name:"Hongludi Nanshan Fude Temple",lat:24.9718,lng:121.4976,note:"วัดเงิน · สักการะเทพแห่งโชคลาภ"},
@@ -396,6 +458,25 @@ const FALLBACK = {
         {id:"d2p4",time:"16:30",icon:"🌅",name:"Elephant Mountain",            lat:25.0272,lng:121.5765,note:"ขึ้นเขาดูวิว Taipei 101 ยามเย็น"},
         {id:"d2p5",time:"19:30",icon:"🏮",name:"Raohe Night Market",           lat:25.0509,lng:121.5775,note:"ตลาดคืน · อาหารอร่อย"},
         {id:"d2p6",time:"22:00",icon:"🏨",name:"Just Sleep Ximending",        lat:25.0450,lng:121.5096,note:"กลับโรงแรม · นอนพักผ่อน",duration:480}
+      ],
+      meals:[
+        {id:"d2meal1",slot:"🌅 Breakfast",time:"~08:15",area:"Ximending",options:[
+          {rank:1,name:"阜杭豆漿",nameEn:"Fuhang Soy Milk",cuisine:"Taiwanese Breakfast",price:"NT$40-80",rating:"4.6★",lat:25.0473,lng:121.5282,note:"อร่อยที่สุดในไต้หวัน · ต่อคิวนานแต่คุ้ม เปิด 05:30"},
+          {rank:2,name:"永和豆漿大王",nameEn:"Yonghe Soy Milk King",cuisine:"Taiwanese Breakfast",price:"NT$30-70",rating:"4.3★",lat:25.0451,lng:121.5020,note:"คลาสสิคที่สุด · เปิด 24 ชม. ใกล้โรงแรม"},
+          {rank:3,name:"世界豆漿大王",nameEn:"World Soy Milk King",cuisine:"Taiwanese Breakfast",price:"NT$35-75",rating:"4.2★",lat:25.0445,lng:121.5065,note:"อาหารเช้าไต้หวัน · โจ๊กข้าว ไข่เจียว ขนมจีบ"}
+        ]},
+        {id:"d2meal2",slot:"🌞 Lunch",time:"~12:30",area:"Yongkang St.",options:[
+          {rank:1,name:"鼎泰豐 永康店",nameEn:"Din Tai Fung (Original)",cuisine:"Dim Sum / Xiaolongbao",price:"NT$400-700/p",rating:"4.7★",lat:25.0293,lng:121.5287,note:"ซาลาเปาน้ำซุประดับโลก · สาขาต้นตำรับ ต้องจอง"},
+          {rank:2,name:"杭州小籠湯包",nameEn:"Hangzhou Xiaolongbao",cuisine:"Xiaolongbao",price:"NT$150-250",rating:"4.5★",lat:25.0302,lng:121.5304,note:"ทางเลือกถูกกว่า Din Tai Fung · อร่อยมากไม่แพ้กัน"},
+          {rank:3,name:"四川吳抄手",nameEn:"Sichuan Wonton",cuisine:"Sichuan / Wonton",price:"NT$120-180",rating:"4.3★",lat:25.0285,lng:121.5291,note:"เกี๊ยวน้ำซูชวน เผ็ดหอมเครื่องเทศ"},
+          {rank:4,name:"永康街小吃",nameEn:"Yongkang St Snacks",cuisine:"Street Food",price:"NT$60-120",rating:"4.0★",lat:25.0293,lng:121.5285,note:"เดินกินไปตลอดถนน · มังคุดน้ำแข็ง ซาลาเปา"}
+        ]},
+        {id:"d2meal3",slot:"🌙 Dinner",time:"~19:30",area:"Raohe Night Market",options:[
+          {rank:1,name:"福州世祖胡椒餅",nameEn:"Fuzhou Pepper Bun",cuisine:"Taiwanese Baked Bun",price:"NT$55",rating:"4.7★",lat:25.0511,lng:121.5773,note:"พายพริกไทยอบในเตาถ่าน · ต้นตำรับ Raohe ต้องกิน!"},
+          {rank:2,name:"陳董藥膳排骨酥湯",nameEn:"Chen Dong Herb Pork Rib Soup",cuisine:"Taiwanese Soup",price:"NT$80-120",rating:"4.5★",lat:25.0509,lng:121.5775,note:"ซุปกระดูกหมูสมุนไพรจีน · อุ่นท้อง หอมยา"},
+          {rank:3,name:"Raohe Grilled Seafood",nameEn:"Raohe Grilled Seafood",cuisine:"Seafood / BBQ",price:"NT$100-250",rating:"4.3★",lat:25.0510,lng:121.5778,note:"หมึกย่าง กุ้งปิ้ง หอยนางรมสด · สดใหม่จากตลาด"},
+          {rank:4,name:"原汁牛肉湯",nameEn:"Original Beef Broth Soup",cuisine:"Taiwanese Beef",price:"NT$80-130",rating:"4.2★",lat:25.0508,lng:121.5772,note:"ซุปเนื้อต้น น้ำซุปใสหวานธรรมชาติ"}
+        ]}
       ]},
     { day:3, date:"16 APR THU", theme:"🙏 วัด 3 แห่ง + Museum + 101 + Shilin", color:"#8B9E6B",
       places:[
@@ -408,13 +489,34 @@ const FALLBACK = {
         {id:"d3p6",time:"17:00",icon:"🏙️",name:"Taipei 101 Mall",            lat:25.0341,lng:121.5640,note:"ช้อปปิ้ง + วิวตึก 101"},
         {id:"d3p7",time:"21:00",icon:"🎡",name:"Shilin Night Market",         lat:25.0885,lng:121.5244,note:"ตลาดคืนใหญ่ที่สุดในไทเป"},
         {id:"d3p8",time:"23:00",icon:"🏨",name:"Just Sleep Ximending",        lat:25.0450,lng:121.5096,note:"กลับโรงแรม · นอนพักผ่อน",duration:480}
+      ],
+      meals:[
+        {id:"d3meal1",slot:"🌞 Lunch",time:"~13:00",area:"Xingtian / Zhongshan",options:[
+          {rank:1,name:"梁記滷肉飯",nameEn:"Liang's Braised Pork Rice",cuisine:"Taiwanese Rice",price:"NT$80-150",rating:"4.5★",lat:25.0625,lng:121.5320,note:"ข้าวหมูพะโล้ยอดนิยม · ใกล้วัดซิงเทียน"},
+          {rank:2,name:"大稻埕米食",nameEn:"Dadaocheng Rice Dishes",cuisine:"Taiwanese Traditional",price:"NT$80-160",rating:"4.4★",lat:25.0556,lng:121.5090,note:"อาหารท้องถิ่น ย่านเก่า Dihua St. · หมี่สั่ว ข้าวต้ม"},
+          {rank:3,name:"行天宮素食",nameEn:"Xingtian Vegetarian",cuisine:"Vegetarian",price:"NT$100-180",rating:"4.3★",lat:25.0629,lng:121.5330,note:"อาหารเจใกล้วัด · สะอาด ถูก ดี เหมาะหลังไหว้พระ"},
+          {rank:4,name:"林家乾麵",nameEn:"Lin's Dry Noodles",cuisine:"Taiwanese Noodles",price:"NT$60-100",rating:"4.2★",lat:25.0618,lng:121.5342,note:"เส้นบะหมี่แห้งสูตรต้นตำรับ · เร็ว ถูก อิ่ม"}
+        ]},
+        {id:"d3meal2",slot:"🌙 Dinner",time:"~21:00",area:"Shilin Night Market",options:[
+          {rank:1,name:"豪大大雞排",nameEn:"Huge Fried Chicken Cutlet",cuisine:"Fried Chicken",price:"NT$65-75",rating:"4.5★",lat:25.0885,lng:121.5240,note:"ไก่ทอดชุบแป้งชิ้นใหญ่กว่าหน้า · ไอคอน Shilin"},
+          {rank:2,name:"大餅包小餅",nameEn:"Big Cake Wraps Small Cake",cuisine:"Taiwanese Dessert",price:"NT$40-55",rating:"4.5★",lat:25.0887,lng:121.5243,note:"ขนมดังเฉพาะ Shilin · แป้งกรอบ ไส้หวาน-เค็ม"},
+          {rank:3,name:"蚵仔煎",nameEn:"Oyster Omelette",cuisine:"Taiwanese Omelette",price:"NT$80-110",rating:"4.3★",lat:25.0883,lng:121.5245,note:"ไข่เจียวหอยนางรม ซอสหวานเปรี้ยว · อาหารไต้หวันต้องลอง"},
+          {rank:4,name:"臭豆腐",nameEn:"Stinky Tofu",cuisine:"Taiwanese Street Food",price:"NT$60-80",rating:"4.2★",lat:25.0884,lng:121.5244,note:"เต้าหู้กลิ่นแรงแต่อร่อยมาก · ทอดกรอบ + กิมจิ"}
+        ]}
       ]},
-    { day:4, date:"17 APR FRI", theme:"🛍️ ของฝาก + บินกลับ",              color:"#7B9CB3",
+    { day:4, date:"17 APR FRI", theme:"🛍️ ของฝาก + บินกลับ", color:"#7B9CB3",
       places:[
         {id:"d4p0",time:"08:00",icon:"🏨",name:"Just Sleep Ximending",     lat:25.0450,lng:121.5096,note:"Check-out · เตรียมกระเป๋า",duration:60},
         {id:"d4p1",time:"09:30",icon:"🛍️",name:"Shin Kong Mitsukoshi",    lat:25.0459,lng:121.5153,note:"ช้อปของฝาก · Zhongxiao Xinsheng"},
         {id:"d4p2",time:"11:00",icon:"🚕", name:"Taxi → Taoyuan Airport", lat:null,   lng:null,   note:"~45 min · ประมาณ NT$1,200"},
         {id:"d4p3",time:"13:55",icon:"✈️", name:"Starlux JX745 → Bangkok",lat:25.0797,lng:121.2325,note:"Taoyuan T2 → BKK · Safe travels!"}
+      ],
+      meals:[
+        {id:"d4meal1",slot:"🌅 Breakfast",time:"~08:30",area:"Ximending (ก่อน Check-out)",options:[
+          {rank:1,name:"阜杭豆漿",nameEn:"Fuhang Soy Milk",cuisine:"Taiwanese Breakfast",price:"NT$40-80",rating:"4.6★",lat:25.0473,lng:121.5282,note:"มื้อเช้าสุดท้ายในไทเป · ถ้าไม่ได้กินยังต้องกลับมาอีก!"},
+          {rank:2,name:"永和豆漿大王",nameEn:"Yonghe Soy Milk King",cuisine:"Taiwanese Breakfast",price:"NT$30-70",rating:"4.3★",lat:25.0451,lng:121.5020,note:"เปิด 24 ชม. · สะดวกก่อน Check-out"},
+          {rank:3,name:"Convenience Store",nameEn:"7-Eleven / FamilyMart",cuisine:"Quick Grab",price:"NT$60-100",rating:"4.0★",lat:25.0450,lng:121.5096,note:"ข้าวปั้น สปาเก็ตตี้อุ่น ไข่ต้ม · เร็วสุด ถ้าเวลาน้อย"}
+        ]}
       ]}
   ]
 };
@@ -567,6 +669,80 @@ function renderDay(i) {
       updateMap(i);
     }
   });
+
+  renderMeals(i);
+}
+
+/* ── Meals Section ─────────────────────────────────── */
+function renderMeals(dayIdx) {
+  const sec = document.getElementById('mealsSection');
+  sec.innerHTML = '';
+  const day = data.days[dayIdx];
+  if (!day.meals || !day.meals.length) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'meals-section';
+  wrap.innerHTML = '<div class="meals-hdr">🍽 แนะนำร้านอาหาร</div>';
+
+  day.meals.forEach(meal => {
+    const slotDiv = document.createElement('div');
+    slotDiv.className = 'meal-slot';
+    slotDiv.innerHTML = `<div class="meal-slot-hdr">
+      <span class="meal-slot-title">${meal.slot}</span>
+      <span class="meal-slot-time">${meal.time}</span>
+      <span class="meal-slot-area">· ${meal.area}</span>
+    </div>`;
+
+    const optsRow = document.createElement('div');
+    optsRow.className = 'meal-opts';
+
+    meal.options.forEach((opt, oi) => {
+      const card = document.createElement('div');
+      card.className = 'meal-opt';
+      if (meal._selected === oi) card.classList.add('selected');
+
+      const rankLabels = ['#1 Top Pick', '#2', '#3', '#4'];
+      card.innerHTML =
+        `<div class="rank-badge">${rankLabels[oi] || `#${oi+1}`}</div>` +
+        `<div class="meal-opt-name">${esc(opt.nameEn || opt.name)}</div>` +
+        (opt.nameEn && opt.name && opt.nameEn !== opt.name
+          ? `<div class="meal-opt-local">${esc(opt.name)}</div>` : '') +
+        `<div class="meal-opt-meta">
+          <span class="meal-tag">${esc(opt.cuisine)}</span>
+          <span class="meal-tag price">${esc(opt.price)}</span>
+          <span class="meal-tag">${esc(opt.rating)}</span>
+        </div>` +
+        (opt.note ? `<div class="meal-opt-note">${esc(opt.note)}</div>` : '') +
+        (opt.lat ? `<button class="meal-map-btn">📍 ดูบนแผนที่</button>` : '');
+
+      card.addEventListener('click', e => {
+        if (e.target.classList.contains('meal-map-btn')) return;
+        meal._selected = (meal._selected === oi) ? undefined : oi;
+        renderMeals(dayIdx);
+      });
+
+      if (opt.lat) {
+        const mapBtn = card.querySelector('.meal-map-btn');
+        if (mapBtn) {
+          mapBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            map.setView([opt.lat, opt.lng], 17, { animate: true });
+            L.popup({ offset: [0, -10] })
+              .setLatLng([opt.lat, opt.lng])
+              .setContent(`<b>${esc(opt.nameEn || opt.name)}</b><br>${esc(opt.note || '')}`)
+              .openOn(map);
+          });
+        }
+      }
+
+      optsRow.appendChild(card);
+    });
+
+    slotDiv.appendChild(optsRow);
+    wrap.appendChild(slotDiv);
+  });
+
+  sec.appendChild(wrap);
 }
 
 /* ── Place Card ────────────────────────────────────── */
@@ -1053,18 +1229,22 @@ async function nominatimSearch(q) {
   const el = document.getElementById('nomResults');
   el.innerHTML = '<div class="search-spin">กำลังค้นหา…</div>';
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1&accept-language=zh-TW,en&viewbox=120.9,24.9,121.7,25.3&bounded=0`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1&namedetails=1&accept-language=en,zh-TW&viewbox=120.9,24.9,121.7,25.3&bounded=0`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     const items = await res.json();
     if (!items.length) { el.innerHTML = '<div class="nom-empty">ไม่พบสถานที่ ลองคำอื่น</div>'; return; }
     el.innerHTML = '';
     items.forEach(item => {
-      const name = item.name || item.display_name.split(',')[0];
+      const nd = item.namedetails || {};
+      const nameEn = nd['name:en'] || nd['name:en-US'] || '';
+      const nameLocal = nd['name:zh'] || nd['name:zh-TW'] || nd['name'] || item.display_name.split(',')[0];
+      const displayName = nameEn || nameLocal;
+      const subName = nameEn && nameLocal && nameEn !== nameLocal ? nameLocal : '';
       const addr = item.display_name.split(',').slice(1, 3).join(',').trim();
       const div = document.createElement('div');
       div.className = 'nom-result';
-      div.innerHTML = `<div class="nom-name">${esc(name)}</div><div class="nom-addr">${esc(addr)}</div>`;
-      div.addEventListener('click', () => selectNomResult(item, name, div));
+      div.innerHTML = `<div class="nom-name">${esc(displayName)}${subName ? ` <span class="nom-local">${esc(subName)}</span>` : ''}</div><div class="nom-addr">${esc(addr)}</div>`;
+      div.addEventListener('click', () => selectNomResult(item, displayName, div));
       el.appendChild(div);
     });
   } catch(e) {
