@@ -11,7 +11,8 @@
         { "id": "d1p1", "time": "18:00", "icon": "🛬", "name": "Taoyuan Airport T2",   "lat": 25.0797, "lng": 121.2325, "note": "Terminal 2 · Arrivals" },
         { "id": "d1p2", "time": "19:00", "icon": "🚇", "name": "Airport MRT → Ximen",  "lat": null,    "lng": null,    "note": "Airport Express · ~40 min" },
         { "id": "d1p3", "time": "19:30", "icon": "🏨", "name": "Just Sleep Ximending", "lat": 25.0450, "lng": 121.5096, "note": "Hotel check-in" },
-        { "id": "d1p4", "time": "20:00", "icon": "🌙", "name": "Ximending",            "lat": 25.0428, "lng": 121.5077, "note": "Night walk & street food" }
+        { "id": "d1p4", "time": "20:00", "icon": "🌙", "name": "Ximending",            "lat": 25.0428, "lng": 121.5077, "note": "Night walk & street food" },
+        { "id": "d1p5", "time": "22:30", "icon": "🏨", "name": "Just Sleep Ximending", "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
       ]
     },
     {
@@ -20,11 +21,13 @@
       "theme": "🪙 วัดเงิน + Bitan + วิว 101",
       "color": "#D4956A",
       "places": [
+        { "id": "d2p0", "time": "08:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "ออกจากโรงแรม", "duration": 15 },
         { "id": "d2p1", "time": "09:00", "icon": "🪙", "name": "Hongludi Nanshan Fude Temple", "lat": 24.9718, "lng": 121.4976, "note": "วัดเงิน · สักการะเทพแห่งโชคลาภ" },
         { "id": "d2p2", "time": "11:00", "icon": "🌊", "name": "Bitan Scenic Area",            "lat": 24.9560, "lng": 121.5365, "note": "ล่องเรือ · วิวสวยริมแม่น้ำ" },
         { "id": "d2p3", "time": "14:00", "icon": "☕", "name": "YABOO Cafe Yongkang",          "lat": 25.0304, "lng": 121.5306, "note": "Specialty coffee · พักบ่าย" },
         { "id": "d2p4", "time": "16:30", "icon": "🌅", "name": "Elephant Mountain",            "lat": 25.0272, "lng": 121.5765, "note": "ขึ้นเขาดูวิว Taipei 101 ยามเย็น" },
-        { "id": "d2p5", "time": "19:30", "icon": "🏮", "name": "Raohe Night Market",           "lat": 25.0509, "lng": 121.5775, "note": "ตลาดคืน · อาหารอร่อย" }
+        { "id": "d2p5", "time": "19:30", "icon": "🏮", "name": "Raohe Night Market",           "lat": 25.0509, "lng": 121.5775, "note": "ตลาดคืน · อาหารอร่อย" },
+        { "id": "d2p6", "time": "22:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
       ]
     },
     {
@@ -33,13 +36,15 @@
       "theme": "🙏 วัด 3 แห่ง + Museum + 101 + Shilin",
       "color": "#8B9E6B",
       "places": [
+        { "id": "d3p0", "time": "07:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "ออกจากโรงแรม", "duration": 15 },
         { "id": "d3p1", "time": "07:30", "icon": "🛒", "name": "Chengzhong Market",            "lat": 25.0436, "lng": 121.5122, "note": "ตลาดเช้า · อาหารเช้าแบบท้องถิ่น" },
         { "id": "d3p2", "time": "09:15", "icon": "🙏", "name": "Lungshan Temple",              "lat": 25.0373, "lng": 121.4999, "note": "วัดเก่าแก่ที่สุดของไทเป" },
         { "id": "d3p3", "time": "11:00", "icon": "🏮", "name": "Xia Hai City God Temple",     "lat": 25.0556, "lng": 121.5102, "note": "วัดเทพเจ้าแห่งเมือง · Dihua St." },
         { "id": "d3p4", "time": "12:15", "icon": "⚔️", "name": "Xingtian Temple",             "lat": 25.0629, "lng": 121.5339, "note": "วัดกวนอู · ยิ่งใหญ่อลังการ" },
         { "id": "d3p5", "time": "14:00", "icon": "🏛️", "name": "Miniatures Museum of Taiwan", "lat": 25.0504, "lng": 121.5361, "note": "พิพิธภัณฑ์บ้านจิ๋ว สุดน่าทึ่ง" },
         { "id": "d3p6", "time": "17:00", "icon": "🏙️", "name": "Taipei 101 Mall",             "lat": 25.0341, "lng": 121.5640, "note": "ช้อปปิ้ง + วิวตึก 101" },
-        { "id": "d3p7", "time": "21:00", "icon": "🎡", "name": "Shilin Night Market",          "lat": 25.0885, "lng": 121.5244, "note": "ตลาดคืนใหญ่ที่สุดในไทเป" }
+        { "id": "d3p7", "time": "21:00", "icon": "🎡", "name": "Shilin Night Market",          "lat": 25.0885, "lng": 121.5244, "note": "ตลาดคืนใหญ่ที่สุดในไทเป" },
+        { "id": "d3p8", "time": "23:00", "icon": "🏨", "name": "Just Sleep Ximending",         "lat": 25.0450, "lng": 121.5096, "note": "กลับโรงแรม · นอนพักผ่อน", "duration": 480 }
       ]
     },
     {
@@ -48,6 +53,7 @@
       "theme": "🛍️ ของฝาก + บินกลับ",
       "color": "#7B9CB3",
       "places": [
+        { "id": "d4p0", "time": "08:00", "icon": "🏨", "name": "Just Sleep Ximending",     "lat": 25.0450, "lng": 121.5096, "note": "Check-out · เตรียมกระเป๋า", "duration": 60 },
         { "id": "d4p1", "time": "09:30", "icon": "🛍️", "name": "Shin Kong Mitsukoshi",    "lat": 25.0459, "lng": 121.5153, "note": "ช้อปของฝาก · Zhongxiao Xinsheng" },
         { "id": "d4p2", "time": "11:00", "icon": "🚕",  "name": "Taxi → Taoyuan Airport", "lat": null,    "lng": null,    "note": "~45 min · ประมาณ NT$1,200" },
         { "id": "d4p3", "time": "13:55", "icon": "✈️",  "name": "Starlux JX745 → Bangkok","lat": 25.0797, "lng": 121.2325, "note": "Taoyuan T2 → BKK · Safe travels!" }
