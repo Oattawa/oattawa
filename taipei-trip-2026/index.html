@@ -178,14 +178,22 @@
     /* ── Transit Row ─────────────────────────────────── */
     .transit-row {
       list-style: none; display: flex; align-items: flex-start;
-      padding: 0 14px 0 50px; gap: 8px; cursor: pointer;
+      padding: 0 14px 0 50px; gap: 8px;
     }
     .transit-inner { flex: 1; padding: 4px 0; }
-    .transit-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .transit-chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
     .t-chip {
-      font-size: .7rem; padding: 3px 9px; border-radius: 20px;
+      font-size: .7rem; padding: 4px 10px; border-radius: 20px; cursor: pointer;
       background: var(--raised); border: 1px solid var(--border); white-space: nowrap;
+      transition: background .15s, color .15s, border-color .15s;
+      font-family: var(--font);
     }
+    .t-chip:hover { border-color: var(--accent); }
+    .t-chip.sel {
+      background: var(--accent); color: #1a0e00;
+      border-color: var(--accent); font-weight: bold;
+    }
+    .t-summary { font-size: .7rem; color: var(--muted); margin-left: 2px; }
     .transit-detail { display: none; margin-top: 6px; }
     .transit-row.open .transit-detail { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .gmaps-link {
@@ -811,23 +819,50 @@ function travelEst(km) {
 function makeTransitRow(p1, p2) {
   if (!p1.lat || !p2.lat) return null;
   const est = travelEst(haversine(p1.lat, p1.lng, p2.lat, p2.lng));
-  const gmUrl = `https://www.google.com/maps/dir/?api=1&origin=${p1.lat},${p1.lng}&destination=${p2.lat},${p2.lng}&travelmode=transit`;
+  const modes = [
+    { key:'walk',  icon:'🚶', label:`${est.walk} นาที`,              gmMode:'walking'  },
+    { key:'mrt',   icon:'🚇', label:`~${est.mrt} นาที`,             gmMode:'transit'  },
+    { key:'taxi',  icon:'🚕', label:`~${est.taxi} นาที ≈NT$${est.ntd}`, gmMode:'driving' }
+  ];
+  let selMode = modes[1]; // default: MRT
+
   const li = document.createElement('li');
   li.className = 'transit-row';
-  li.innerHTML = `
-    <div class="transit-inner">
-      <div class="transit-chips">
-        <span class="t-dist">${est.km} km</span>
-        <span class="t-chip">🚶 ${est.walk} นาที</span>
-        <span class="t-chip">🚇 ~${est.mrt} นาที</span>
-        <span class="t-chip">🚕 ~${est.taxi} นาที ≈NT$${est.ntd}</span>
-      </div>
-      <div class="transit-detail">
-        <a class="gmaps-link" href="${gmUrl}" target="_blank" rel="noopener">🗺 เปิด Google Maps</a>
-      </div>
-    </div>`;
+
+  function gmUrl() {
+    return `https://www.google.com/maps/dir/?api=1&origin=${p1.lat},${p1.lng}&destination=${p2.lat},${p2.lng}&travelmode=${selMode.gmMode}`;
+  }
+
+  function render() {
+    li.innerHTML = `
+      <div class="transit-inner">
+        <div class="transit-chips">
+          <span class="t-dist">${est.km} km</span>
+          ${modes.map(m => `
+            <button class="t-chip${m.key === selMode.key ? ' sel' : ''}" data-mode="${m.key}">
+              ${m.icon} ${m.label}
+            </button>`).join('')}
+        </div>
+        <div class="transit-detail">
+          <a class="gmaps-link" href="${gmUrl()}" target="_blank" rel="noopener">
+            🗺 Google Maps (${selMode.icon})
+          </a>
+        </div>
+      </div>`;
+
+    li.querySelectorAll('.t-chip').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        selMode = modes.find(m => m.key === btn.dataset.mode);
+        li.classList.add('open');
+        render();
+      });
+    });
+  }
+
+  render();
   li.addEventListener('click', e => {
-    if (e.target.closest('a')) return;
+    if (e.target.closest('a') || e.target.closest('.t-chip')) return;
     li.classList.toggle('open');
   });
   return li;
