@@ -67,6 +67,7 @@
     }
     .btn:hover { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
     .btn-icon { padding: 7px 10px; font-size: 1rem; }
+    .btn.active { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
 
     /* ── Search ──────────────────────────────────────── */
     .search-wrap { position: relative; }
@@ -270,6 +271,8 @@
       <p>14 – 17 April · 4 Days · ไทเป</p>
     </div>
     <div class="hdr-actions">
+      <button class="btn btn-icon" id="mrtBtn"   title="Toggle MRT lines" onclick="toggleMRT()">🚇</button>
+      <button class="btn btn-icon" id="gpsBtn"   title="My location"      onclick="locateMe()">📍</button>
       <button class="btn btn-icon" id="themeBtn" title="Toggle theme">☀️</button>
       <button class="btn" id="printBtn">🖨 PDF</button>
     </div>
@@ -383,6 +386,39 @@ let data = null;
 let curDay = 0;
 let isDark = false;
 let map, tileLayer, markers = [], sortable = null;
+let routeLine = null, gpsMarker = null, mrtLayers = [], mrtVisible = false;
+
+/* ── MRT Line Data ─────────────────────────────────── */
+const MRT_LINES = [
+  { name:'Danshui–Xinyi', color:'#e3002c', coords:[
+    [25.1796,121.4481],[25.1156,121.4647],[25.0934,121.5243],[25.0855,121.5171],
+    [25.0700,121.5202],[25.0569,121.5205],[25.0477,121.5170],[25.0423,121.5071],
+    [25.0186,121.5261],[25.0267,121.5437],[25.0341,121.5560],[25.0341,121.5640],[25.0251,121.5701]
+  ]},
+  { name:'Bannan', color:'#0070bd', coords:[
+    [24.9947,121.4363],[25.0134,121.4700],[25.0275,121.4998],
+    [25.0477,121.5170],[25.0459,121.5298],[25.0415,121.5447],
+    [25.0408,121.5676],[25.0407,121.5874],[25.0520,121.6071],[25.0556,121.6195]
+  ]},
+  { name:'Songshan–Xindian', color:'#008659', coords:[
+    [25.0499,121.5780],[25.0508,121.5587],[25.0477,121.5170],
+    [25.0423,121.5071],[25.0186,121.5261],[25.0126,121.5340],
+    [24.9762,121.5439],[24.9291,121.5396],[24.9138,121.5417]
+  ]},
+  { name:'Zhonghe–Xinlu', color:'#f8a501', coords:[
+    [25.0831,121.4625],[25.0700,121.4800],[25.0569,121.5205],
+    [25.0186,121.5261],[24.9887,121.5375]
+  ]},
+  { name:'Wenhu', color:'#c48c31', coords:[
+    [24.9984,121.5718],[25.0163,121.5574],[25.0340,121.5560],
+    [25.0415,121.5447],[25.0508,121.5447],[25.0630,121.5520],
+    [25.0797,121.5873],[25.0862,121.6025]
+  ]},
+  { name:'Circular', color:'#ffdb00', coords:[
+    [25.0459,121.5153],[25.0321,121.5070],[25.0186,121.5261],
+    [25.0126,121.5340],[24.9887,121.5375],[24.9560,121.5365]
+  ]}
+];
 
 /* ── Init ──────────────────────────────────────────── */
 async function init() {
@@ -504,6 +540,57 @@ function initMap() {
   map.setView([25.0478, 121.5319], 12);
 }
 
+/* ── MRT Layer ─────────────────────────────────────── */
+function toggleMRT() {
+  mrtVisible = !mrtVisible;
+  const btn = document.getElementById('mrtBtn');
+  if (mrtVisible) {
+    MRT_LINES.forEach(line => {
+      const pl = L.polyline(line.coords, { color: line.color, weight: 3, opacity: 0.85 })
+        .bindTooltip(line.name, { sticky: true })
+        .addTo(map);
+      mrtLayers.push(pl);
+    });
+    btn.classList.add('active');
+    toast('แสดงเส้น MRT แล้ว');
+  } else {
+    mrtLayers.forEach(l => map.removeLayer(l));
+    mrtLayers = [];
+    btn.classList.remove('active');
+  }
+}
+
+/* ── Route Polyline ────────────────────────────────── */
+function drawRoute(dayIdx) {
+  if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+  const pts = data.days[dayIdx].places.filter(p => p.lat != null).map(p => [p.lat, p.lng]);
+  if (pts.length < 2) return;
+  routeLine = L.polyline(pts, {
+    color: data.days[dayIdx].color, weight: 3, opacity: 0.7, dashArray: '8 6'
+  }).addTo(map);
+}
+
+/* ── GPS Location ──────────────────────────────────── */
+function locateMe() {
+  if (!navigator.geolocation) { toast('Browser ไม่รองรับ GPS'); return; }
+  const btn = document.getElementById('gpsBtn');
+  btn.textContent = '⏳';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      if (gpsMarker) map.removeLayer(gpsMarker);
+      gpsMarker = L.circleMarker([lat, lng], {
+        radius: 10, color: '#4A90E2', fillColor: '#4A90E2',
+        fillOpacity: 0.9, weight: 3
+      }).bindPopup('<b>📍 คุณอยู่ที่นี่</b>').addTo(map).openPopup();
+      map.setView([lat, lng], 15, { animate: true });
+      btn.textContent = '📍';
+      toast('พบตำแหน่งของคุณแล้ว');
+    },
+    err => { btn.textContent = '📍'; toast('ไม่สามารถระบุตำแหน่งได้'); }
+  );
+}
+
 function setTiles() {
   if (tileLayer) map.removeLayer(tileLayer);
   tileLayer = L.tileLayer(
@@ -529,6 +616,7 @@ function updateMap(i) {
       .addTo(map);
     markers.push(m);
   });
+  drawRoute(i);
   if (pts.length === 1) {
     map.setView([pts[0].lat, pts[0].lng], 14);
   } else if (pts.length > 1) {
