@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<html lang="th" data-theme="dark">
+<html lang="th" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0f0f0f" id="metaTheme">
+  <meta name="theme-color" content="#f4ede4" id="metaTheme">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Taipei 2026">
   <meta name="description" content="Taipei Trip 2026 · 14–17 April · Day-by-day itinerary">
   <title>Taipei Trip 2026</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     /* ── Variables ───────────────────────────────────── */
     :root {
@@ -199,7 +198,7 @@
       <p>14 – 17 April · 4 Days · ไทเป</p>
     </div>
     <div class="hdr-actions">
-      <button class="btn btn-icon" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="btn btn-icon" id="themeBtn" title="Toggle theme">☀️</button>
       <button class="btn" id="printBtn">🖨 PDF</button>
     </div>
   </div>
@@ -239,8 +238,7 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ═══ SCRIPTS ════════════════════════════════════════ -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPaA=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 'use strict';
@@ -285,12 +283,12 @@ const FALLBACK = {
 /* ── State ─────────────────────────────────────────── */
 let data = null;
 let curDay = 0;
-let isDark = true;
+let isDark = false;
 let map, tileLayer, markers = [], sortable = null;
 
 /* ── Init ──────────────────────────────────────────── */
 async function init() {
-  const saved = localStorage.getItem('theme') || 'dark';
+  const saved = localStorage.getItem('theme') || 'light';
   applyTheme(saved === 'dark', false);
 
   try {
